@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TrainMe.Core.Interfaces.Services.Auth;
 using TrainMe.Data;
-
+using TrainMe.Services.Auth;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,11 +17,35 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDbContext")));
 
 // JWT
-var JWT = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(JWT["Key"]!);
+var jwt = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
 
-// Add Password Service
+// Add Services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Add Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwt["Issuer"],
+        ValidAudience = jwt["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 var app = builder.Build();
 
@@ -33,6 +60,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

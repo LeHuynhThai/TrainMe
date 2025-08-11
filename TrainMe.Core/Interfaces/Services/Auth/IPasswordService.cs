@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TrainMe.Core.Interfaces.Services.Auth
+﻿namespace TrainMe.Core.Interfaces.Services.Auth
 {
-    internal interface IPasswordService
+    public interface IPasswordService
     {
         string HashPassword(string password);
         bool VerifyPassword(string password, string hash);

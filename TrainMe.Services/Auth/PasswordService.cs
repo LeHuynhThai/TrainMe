@@ -1,13 +1,8 @@
-﻿using BCrypt.Net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TrainMe.Core.Interfaces.Services.Auth;
 
 namespace TrainMe.Services.Auth
 {
-    public class PasswordService
+    public class PasswordService : IPasswordService
     {
         // Hash password
         public string HashPassword(string password)
@@ -23,7 +18,7 @@ namespace TrainMe.Services.Auth
         // Verify password
         public bool VerifyPassword(string password, string hash)
         {
-            if(string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
+            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
             {
                 return false;
             }

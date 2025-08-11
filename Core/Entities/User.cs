@@ -11,5 +11,9 @@ namespace TrainMe.Core.Entities
         public string UserName { get; set; }
         [Required]
         public string PasswordHash { get; set; }
+        [Required]
+        public string Role { get; set; } = "User";
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

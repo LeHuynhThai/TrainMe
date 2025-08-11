@@ -17,6 +17,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var JWT = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(JWT["Key"]!);
 
+// Add Password Service
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

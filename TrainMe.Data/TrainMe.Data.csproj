@@ -16,4 +16,9 @@
     <ProjectReference Include="..\Core\TrainMe.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Seed\" />
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
 </Project>

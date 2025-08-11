@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text;
 using TrainMe.Data;
 
 
@@ -11,6 +12,10 @@ builder.Services.AddControllersWithViews();
 // Add Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDbContext")));
+
+// JWT
+var JWT = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(JWT["Key"]!);
 
 var app = builder.Build();
 

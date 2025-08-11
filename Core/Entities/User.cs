@@ -7,8 +7,9 @@ namespace TrainMe.Core.Entities
         [Key]
         public int Id { get; set; }
         [Required]
+        [MaxLength(100)]
         public string UserName { get; set; }
         [Required]
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
     }
 }

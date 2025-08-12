@@ -21,7 +21,7 @@ builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.IUserRepository,
 // Add Services
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IPasswordService, TrainMe.Services.Auth.PasswordService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.ITokenService, TrainMe.Services.Auth.TokenService>();
-builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IAuthService, TrainMe.Services.AuthService>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IAuthService, TrainMe.Services.Auth.AuthService>();
 
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

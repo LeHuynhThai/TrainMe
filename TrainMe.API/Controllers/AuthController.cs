@@ -11,17 +11,12 @@ namespace TrainMe.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService)
     {
-        _authService = authService;
-        _logger = logger;
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
     }
 
-    /// <summary>
-    /// Đăng ký tài khoản mới
-    /// </summary>
     [AllowAnonymous]
     [HttpPost("register")]
     [ProducesResponseType(typeof(ApiResponse<RegisterResponse>), 200)]
@@ -29,27 +24,12 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)
-        {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors));
-        }
+            return BadRequest(CreateValidationErrorResponse());
 
         var result = await _authService.RegisterAsync(request);
-
-        if (!result.Success)
-        {
-            return BadRequest(result);
-        }
-
-        return Ok(result);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    /// <summary>
-    /// Đăng nhập
-    /// </summary>
     [AllowAnonymous]
     [HttpPost("login")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 200)]
@@ -58,27 +38,12 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid)
-        {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors));
-        }
+            return BadRequest(CreateValidationErrorResponse());
 
         var result = await _authService.LoginAsync(request);
-
-        if (!result.Success)
-        {
-            return Unauthorized(result);
-        }
-
-        return Ok(result);
+        return result.Success ? Ok(result) : Unauthorized(result);
     }
 
-    /// <summary>
-    /// Lấy thông tin người dùng hiện tại
-    /// </summary>
     [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(typeof(ApiResponse<UserInfoDto>), 200)]
@@ -87,27 +52,24 @@ public class AuthController : ControllerBase
     {
         var userId = GetCurrentUserId();
         if (userId == null)
-        {
             return Unauthorized(ApiResponse.ErrorResult("Không thể xác định người dùng"));
-        }
 
         var result = await _authService.GetCurrentUserAsync(userId.Value);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
-        if (!result.Success)
-        {
-            return BadRequest(result);
-        }
-
-        return Ok(result);
+    private ApiResponse CreateValidationErrorResponse()
+    {
+        var errors = ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .ToList();
+        return ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors);
     }
 
     private int? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (int.TryParse(userIdClaim, out var userId))
-        {
-            return userId;
-        }
-        return null;
+        return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

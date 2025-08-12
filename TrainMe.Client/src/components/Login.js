@@ -1,40 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Alert
-} from '@mui/material';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     userName: '',
     password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(formData.userName, formData.password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -43,59 +20,119 @@ const Login = () => {
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await login(formData.userName, formData.password);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.message || 'Đăng nhập thất bại');
+      }
+    } catch (err) {
+      setError('Có lỗi xảy ra khi đăng nhập');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Đăng nhập
-          </Typography>
-          
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="userName"
-              label="Tên đăng nhập"
-              name="userName"
-              autoComplete="username"
-              autoFocus
-              value={formData.userName}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Mật khẩu"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <Button
+    <div className="container" style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <div className="card-header">
+          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
+            🚀 TrainMe
+          </h2>
+          <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>
+            Đăng nhập vào tài khoản của bạn
+          </p>
+        </div>
+
+        <div className="card-body">
+          {error && (
+            <div className="alert alert-danger">
+              <strong>Lỗi!</strong> {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">
+                👤 Tên đăng nhập
+              </label>
+              <input
+                type="text"
+                name="userName"
+                value={formData.userName}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="Nhập tên đăng nhập của bạn"
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                🔒 Mật khẩu
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="Nhập mật khẩu của bạn"
+                autoComplete="current-password"
+              />
+            </div>
+
+            <button
               type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
               disabled={loading}
+              className={`btn btn-primary ${loading ? 'loading' : ''}`}
+              style={{ width: '100%', fontSize: '16px', padding: '14px' }}
             >
-              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-            </Button>
-            <Box textAlign="center">
-              <Link to="/register" style={{ textDecoration: 'none' }}>
-                Chưa có tài khoản? Đăng ký ngay
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+              {loading ? (
+                <>
+                  <span style={{ marginRight: '8px' }}>⏳</span>
+                  Đang đăng nhập...
+                </>
+              ) : (
+                <>
+                  <span style={{ marginRight: '8px' }}>🚪</span>
+                  Đăng nhập
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center mt-3">
+            <p style={{ color: '#6c757d', marginBottom: '16px' }}>
+              Chưa có tài khoản?
+            </p>
+            <Link
+              to="/register"
+              className="btn btn-secondary"
+              style={{ textDecoration: 'none' }}
+            >
+              <span style={{ marginRight: '8px' }}>📝</span>
+              Đăng ký ngay
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

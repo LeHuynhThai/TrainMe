@@ -15,9 +15,13 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDbContext")));
 
+// Add Repositories
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.IUserRepository, TrainMe.Data.Repositories.UserRepository>();
+
 // Add Services
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IPasswordService, TrainMe.Services.Auth.PasswordService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.ITokenService, TrainMe.Services.Auth.TokenService>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IAuthService, TrainMe.Services.AuthService>();
 
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -77,12 +81,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add Authorization
+builder.Services.AddAuthorization();
+
 // CORS cho React app
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -102,7 +109,17 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Tắt HTTPS redirect cho development
+
+// Security Headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
 
 // CORS
 app.UseCors("AllowReactApp");

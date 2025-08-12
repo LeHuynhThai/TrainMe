@@ -1,47 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Alert
-} from '@mui/material';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [formData, setFormData] = useState({
     userName: '',
     password: '',
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await register(formData.userName, formData.password);
-      navigate('/login');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -50,71 +22,159 @@ const Register = () => {
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await register(formData.userName, formData.password);
+      if (result.success) {
+        setSuccess('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(result.message || 'Đăng ký thất bại');
+      }
+    } catch (err) {
+      setError('Có lỗi xảy ra khi đăng ký');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Đăng ký
-          </Typography>
-          
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="userName"
-              label="Tên đăng nhập"
-              name="userName"
-              autoComplete="username"
-              autoFocus
-              value={formData.userName}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Mật khẩu"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Xác nhận mật khẩu"
-              type="password"
-              id="confirmPassword"
-              autoComplete="new-password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-            <Button
+    <div className="container" style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <div className="card-header">
+          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
+            🎯 Tham gia TrainMe
+          </h2>
+          <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>
+            Tạo tài khoản mới để bắt đầu
+          </p>
+        </div>
+
+        <div className="card-body">
+          {error && (
+            <div className="alert alert-danger">
+              <strong>Lỗi!</strong> {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="alert alert-success">
+              <strong>Thành công!</strong> {success}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">
+                👤 Tên đăng nhập
+              </label>
+              <input
+                type="text"
+                name="userName"
+                value={formData.userName}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="Chọn tên đăng nhập của bạn"
+                autoComplete="username"
+                minLength="3"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                🔒 Mật khẩu
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="Tạo mật khẩu mạnh (ít nhất 6 ký tự)"
+                autoComplete="new-password"
+                minLength="6"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                🔐 Xác nhận mật khẩu
+              </label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="Nhập lại mật khẩu để xác nhận"
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button
               type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
               disabled={loading}
+              className={`btn btn-primary ${loading ? 'loading' : ''}`}
+              style={{ width: '100%', fontSize: '16px', padding: '14px' }}
             >
-              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
-            </Button>
-            <Box textAlign="center">
-              <Link to="/login" style={{ textDecoration: 'none' }}>
-                Đã có tài khoản? Đăng nhập ngay
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+              {loading ? (
+                <>
+                  <span style={{ marginRight: '8px' }}>⏳</span>
+                  Đang đăng ký...
+                </>
+              ) : (
+                <>
+                  <span style={{ marginRight: '8px' }}>🎯</span>
+                  Đăng ký tài khoản
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center mt-3">
+            <p style={{ color: '#6c757d', marginBottom: '16px' }}>
+              Đã có tài khoản?
+            </p>
+            <Link
+              to="/login"
+              className="btn btn-secondary"
+              style={{ textDecoration: 'none' }}
+            >
+              <span style={{ marginRight: '8px' }}>🚪</span>
+              Đăng nhập ngay
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

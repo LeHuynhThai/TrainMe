@@ -6,14 +6,19 @@ namespace TrainMe.Core.Entities
     {
         [Key]
         public int Id { get; set; }
+
         [Required]
         [MaxLength(100)]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = default!;
+
         [Required]
-        public string PasswordHash { get; set; }
-        [Required]
-        public string Role { get; set; } = "User";
+        public string PasswordHash { get; set; } = default!;
+
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        [MaxLength(50)]
+        public string Role { get; set; } = "User";
     }
 }

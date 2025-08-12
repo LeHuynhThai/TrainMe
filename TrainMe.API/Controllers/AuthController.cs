@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TrainMe.Core.Entities;
+using System.Security.Claims;
+using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Services.Auth;
-using TrainMe.Data;
 
 namespace TrainMe.API.Controllers;
 
@@ -11,83 +10,104 @@ namespace TrainMe.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _db;
-    private readonly IPasswordService _passwordService;
-    private readonly ITokenService _tokenService;
+    private readonly IAuthService _authService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(AppDbContext db, IPasswordService passwordService, ITokenService tokenService)
+    public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
-        _db = db;
-        _passwordService = passwordService;
-        _tokenService = tokenService;
+        _authService = authService;
+        _logger = logger;
     }
 
+    /// <summary>
+    /// Đăng ký tài khoản mới
+    /// </summary>
     [AllowAnonymous]
     [HttpPost("register")]
+    [ProducesResponseType(typeof(ApiResponse<RegisterResponse>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.Password))
-            return BadRequest(new { message = "UserName và Password là bắt buộc." });
-
-        var exists = await _db.Users.AnyAsync(x => x.UserName == request.UserName);
-        if (exists) return Conflict(new { message = "UserName đã tồn tại." });
-
-        var user = new User
+        if (!ModelState.IsValid)
         {
-            UserName = request.UserName,
-            PasswordHash = _passwordService.HashPassword(request.Password),
-            Role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role
-        };
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors));
+        }
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        var result = await _authService.RegisterAsync(request);
 
-        return Created(string.Empty, new { user.Id, user.UserName, user.Role });
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Đăng nhập
+    /// </summary>
     [AllowAnonymous]
     [HttpPost("login")]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _db.Users.SingleOrDefaultAsync(x => x.UserName == request.UserName);
-        if (user == null) return Unauthorized(new { message = "Sai thông tin đăng nhập." });
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors));
+        }
 
-        if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
-            return Unauthorized(new { message = "Sai thông tin đăng nhập." });
+        var result = await _authService.LoginAsync(request);
 
-        var accessToken = _tokenService.CreateAccessToken(user);
-        var expiresAt = _tokenService.GetExpiration();
+        if (!result.Success)
+        {
+            return Unauthorized(result);
+        }
 
-        return Ok(new { 
-            accessToken, 
-            expiresAt, 
-            userName = user.UserName, 
-            role = user.Role 
-        });
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Lấy thông tin người dùng hiện tại
+    /// </summary>
     [Authorize]
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    [ProducesResponseType(typeof(ApiResponse<UserInfoDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 401)]
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userId = GetCurrentUserId();
+        if (userId == null)
+        {
+            return Unauthorized(ApiResponse.ErrorResult("Không thể xác định người dùng"));
+        }
 
-        return Ok(new { userId, userName, role });
+        var result = await _authService.GetCurrentUserAsync(userId.Value);
+
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
-}
 
-// DTOs
-public class RegisterRequest
-{
-    public string UserName { get; set; } = default!;
-    public string Password { get; set; } = default!;
-    public string? Role { get; set; }
-}
-
-public class LoginRequest
-{
-    public string UserName { get; set; } = default!;
-    public string Password { get; set; } = default!;
+    private int? GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out var userId))
+        {
+            return userId;
+        }
+        return null;
+    }
 }

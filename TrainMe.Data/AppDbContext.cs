@@ -12,9 +12,12 @@ namespace TrainMe.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.UserName)
-                .IsUnique();
+            // User configurations
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(u => u.UserName).IsUnique();
+            });
+
             base.OnModelCreating(modelBuilder);
         }
     }

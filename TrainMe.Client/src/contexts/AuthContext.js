@@ -20,7 +20,9 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       authAPI.getCurrentUser()
         .then(response => {
-          setUser(response.data);
+          if (response.data.success) {
+            setUser(response.data.data);
+          }
         })
         .catch(() => {
           localStorage.removeItem('token');
@@ -34,16 +36,46 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (userName, password) => {
-    const response = await authAPI.login({ userName, password });
-    const { accessToken, userName: name, role } = response.data;
-    localStorage.setItem('token', accessToken);
-    setUser({ userName: name, role });
-    return response.data;
+    try {
+      console.log('Attempting login with:', { userName, password });
+      const response = await authAPI.login({ userName, password });
+      console.log('Login response:', response);
+
+      if (response.data.success) {
+        const authData = response.data.data;
+        const { accessToken, user: userData } = authData;
+        localStorage.setItem('token', accessToken);
+        setUser(userData);
+        return { success: true, data: authData };
+      } else {
+        console.log('Login failed:', response.data);
+        return { success: false, message: response.data.message };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const message = error.response?.data?.message || 'Đăng nhập thất bại';
+      return { success: false, message };
+    }
   };
 
-  const register = async (userName, password, role = 'User') => {
-    const response = await authAPI.register({ userName, password, role });
-    return response.data;
+  const register = async (userName, password) => {
+    try {
+      console.log('Attempting register with:', { userName, password });
+      const response = await authAPI.register({ userName, password });
+      console.log('Register response:', response);
+
+      if (response.data.success) {
+        return { success: true, data: response.data.data };
+      } else {
+        console.log('Register failed:', response.data);
+        return { success: false, message: response.data.message, errors: response.data.errors };
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      const message = error.response?.data?.message || 'Đăng ký thất bại';
+      const errors = error.response?.data?.errors || [];
+      return { success: false, message, errors };
+    }
   };
 
   const logout = () => {
@@ -53,10 +85,10 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    loading,
     login,
     register,
-    logout,
-    loading
+    logout
   };
 
   return (

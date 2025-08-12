@@ -10,11 +10,7 @@ public class PasswordService : IPasswordService
         return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
-    public bool VerifyPassword(string password, string hash)
-    {
-        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
-            return false;
-
-        return BCrypt.Net.BCrypt.Verify(password, hash);
-    }
+    public bool VerifyPassword(string password, string hash) =>
+        !string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(hash) &&
+        BCrypt.Net.BCrypt.Verify(password, hash);
 }

@@ -13,11 +13,8 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly ILogger<AuthService> _logger;
 
-    public AuthService(
-        IUserRepository userRepository,
-        IPasswordService passwordService,
-        ITokenService tokenService,
-        ILogger<AuthService> logger)
+    public AuthService(IUserRepository userRepository, IPasswordService passwordService,
+        ITokenService tokenService, ILogger<AuthService> logger)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _passwordService = passwordService ?? throw new ArgumentNullException(nameof(passwordService));
@@ -25,24 +22,21 @@ public class AuthService : IAuthService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request)
+    public async Task<ApiResponse<UserDto>> RegisterAsync(RegisterRequest request)
     {
         try
         {
             if (await _userRepository.ExistsByUserNameAsync(request.UserName))
-                return ApiResponse<RegisterResponse>.ErrorResult("Tên đăng nhập đã tồn tại");
+                return ApiResponse<UserDto>.ErrorResult("Tên đăng nhập đã tồn tại");
 
-            var user = CreateUser(request);
-            var createdUser = await _userRepository.CreateAsync(user);
-            var response = MapToRegisterResponse(createdUser);
-
+            var createdUser = await _userRepository.CreateAsync(CreateUser(request));
             _logger.LogInformation("User {UserName} registered successfully", request.UserName);
-            return ApiResponse<RegisterResponse>.SuccessResult(response, "Đăng ký thành công");
+            return ApiResponse<UserDto>.SuccessResult(MapToUserDto(createdUser), "Đăng ký thành công");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error registering user {UserName}", request.UserName);
-            return ApiResponse<RegisterResponse>.ErrorResult("Có lỗi xảy ra khi đăng ký");
+            return ApiResponse<UserDto>.ErrorResult("Có lỗi xảy ra khi đăng ký");
         }
     }
 
@@ -51,19 +45,14 @@ public class AuthService : IAuthService
         try
         {
             var user = await _userRepository.GetByUserNameAsync(request.UserName);
-            if (user == null)
+            if (user == null || !_passwordService.VerifyPassword(request.Password, user.PasswordHash))
             {
-                _logger.LogWarning("Login attempt with non-existent username: {UserName}", request.UserName);
+                if (user == null) _logger.LogWarning("Login attempt with non-existent username: {UserName}", request.UserName);
                 return ApiResponse<AuthResponse>.ErrorResult("Thông tin đăng nhập không chính xác");
             }
 
-            if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
-                return ApiResponse<AuthResponse>.ErrorResult("Thông tin đăng nhập không chính xác");
-
-            var response = CreateAuthResponse(user);
-
             _logger.LogInformation("User {UserName} logged in successfully", request.UserName);
-            return ApiResponse<AuthResponse>.SuccessResult(response, "Đăng nhập thành công");
+            return ApiResponse<AuthResponse>.SuccessResult(CreateAuthResponse(user), "Đăng nhập thành công");
         }
         catch (Exception ex)
         {
@@ -72,25 +61,22 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<ApiResponse<UserInfoDto>> GetCurrentUserAsync(int userId)
+    public async Task<ApiResponse<UserDto>> GetCurrentUserAsync(int userId)
     {
         try
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                return ApiResponse<UserInfoDto>.ErrorResult("Người dùng không tồn tại");
-
-            var userInfo = MapToUserInfoDto(user);
-            return ApiResponse<UserInfoDto>.SuccessResult(userInfo);
+            return user == null
+                ? ApiResponse<UserDto>.ErrorResult("Người dùng không tồn tại")
+                : ApiResponse<UserDto>.SuccessResult(MapToUserDto(user));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting current user {UserId}", userId);
-            return ApiResponse<UserInfoDto>.ErrorResult("Có lỗi xảy ra khi lấy thông tin người dùng");
+            return ApiResponse<UserDto>.ErrorResult("Có lỗi xảy ra khi lấy thông tin người dùng");
         }
     }
 
-    // Private helper methods
     private User CreateUser(RegisterRequest request) => new()
     {
         UserName = request.UserName,
@@ -99,26 +85,10 @@ public class AuthService : IAuthService
         CreatedAt = DateTime.UtcNow
     };
 
-    private static RegisterResponse MapToRegisterResponse(User user) => new()
-    {
-        Id = user.Id,
-        UserName = user.UserName,
-        Role = user.Role,
-        CreatedAt = user.CreatedAt
-    };
+    private AuthResponse CreateAuthResponse(User user) => new(
+        _tokenService.CreateAccessToken(user),
+        _tokenService.GetExpiration(),
+        MapToUserDto(user));
 
-    private AuthResponse CreateAuthResponse(User user) => new()
-    {
-        AccessToken = _tokenService.CreateAccessToken(user),
-        ExpiresAt = _tokenService.GetExpiration(),
-        User = MapToUserInfoDto(user)
-    };
-
-    private static UserInfoDto MapToUserInfoDto(User user) => new()
-    {
-        Id = user.Id,
-        UserName = user.UserName,
-        Role = user.Role,
-        CreatedAt = user.CreatedAt
-    };
+    private static UserDto MapToUserDto(User user) => new(user.Id, user.UserName, user.Role, user.CreatedAt);
 }

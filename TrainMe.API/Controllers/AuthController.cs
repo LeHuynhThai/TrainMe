@@ -17,59 +17,35 @@ public class AuthController : ControllerBase
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
     }
 
-    [AllowAnonymous]
-    [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<RegisterResponse>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    [AllowAnonymous, HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(CreateValidationErrorResponse());
-
+        if (!ModelState.IsValid) return BadRequest(CreateValidationErrorResponse());
         var result = await _authService.RegisterAsync(request);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [AllowAnonymous]
-    [HttpPost("login")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    [AllowAnonymous, HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(CreateValidationErrorResponse());
-
+        if (!ModelState.IsValid) return BadRequest(CreateValidationErrorResponse());
         var result = await _authService.LoginAsync(request);
         return result.Success ? Ok(result) : Unauthorized(result);
     }
 
-    [Authorize]
-    [HttpGet("me")]
-    [ProducesResponseType(typeof(ApiResponse<UserInfoDto>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
+    [Authorize, HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
         var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("Không thể xác định người dùng"));
-
+        if (userId == null) return Unauthorized(ApiResponse.ErrorResult("Không thể xác định người dùng"));
         var result = await _authService.GetCurrentUserAsync(userId.Value);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    private ApiResponse CreateValidationErrorResponse()
-    {
-        var errors = ModelState.Values
-            .SelectMany(v => v.Errors)
-            .Select(e => e.ErrorMessage)
-            .ToList();
-        return ApiResponse.ErrorResult("Dữ liệu không hợp lệ", errors);
-    }
+    private ApiResponse CreateValidationErrorResponse() =>
+        ApiResponse.ErrorResult("Dữ liệu không hợp lệ",
+            ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList());
 
-    private int? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return int.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
+    private int? GetCurrentUserId() =>
+        int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId) ? userId : null;
 }

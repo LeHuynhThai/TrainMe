@@ -21,14 +21,12 @@ public class TokenService : ITokenService
     public string CreateAccessToken(User user)
     {
         ArgumentNullException.ThrowIfNull(user);
+        var config = GetJwtConfiguration();
+        _expires = DateTime.UtcNow.AddMinutes(config.ExpireMinutes);
 
-        var jwtConfig = GetJwtConfiguration();
-        var signingCredentials = CreateSigningCredentials(jwtConfig.Key);
-
-        _expires = DateTime.UtcNow.AddMinutes(jwtConfig.ExpireMinutes);
-
-        var claims = CreateClaims(user);
-        var token = CreateJwtToken(jwtConfig, claims, signingCredentials);
+        var token = new JwtSecurityToken(
+            config.Issuer, config.Audience, CreateClaims(user),
+            DateTime.UtcNow, _expires, CreateSigningCredentials(config.Key));
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
@@ -38,35 +36,18 @@ public class TokenService : ITokenService
     private (string Key, string? Issuer, string? Audience, int ExpireMinutes) GetJwtConfiguration()
     {
         var jwt = _config.GetSection("Jwt");
-        var key = jwt["Key"] ?? throw new InvalidOperationException("Missing Jwt:Key configuration");
-        var expireMinutes = int.TryParse(jwt["ExpireMinutes"], out var minutes) ? minutes : 30;
-
-        return (key, jwt["Issuer"], jwt["Audience"], expireMinutes);
+        return (jwt["Key"] ?? throw new InvalidOperationException("Missing Jwt:Key"),
+                jwt["Issuer"], jwt["Audience"],
+                int.TryParse(jwt["ExpireMinutes"], out var minutes) ? minutes : 30);
     }
 
-    private static SigningCredentials CreateSigningCredentials(string key)
-    {
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-        return new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-    }
+    private static SigningCredentials CreateSigningCredentials(string key) =>
+        new(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256);
 
-    private static List<Claim> CreateClaims(User user) => new()
-    {
+    private static List<Claim> CreateClaims(User user) => [
         new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-        new(JwtRegisteredClaimNames.UniqueName, user.UserName),
         new(ClaimTypes.NameIdentifier, user.Id.ToString()),
         new(ClaimTypes.Name, user.UserName),
         new(ClaimTypes.Role, user.Role)
-    };
-
-    private JwtSecurityToken CreateJwtToken(
-        (string Key, string? Issuer, string? Audience, int ExpireMinutes) config,
-        List<Claim> claims,
-        SigningCredentials credentials) => new(
-            issuer: config.Issuer,
-            audience: config.Audience,
-            claims: claims,
-            notBefore: DateTime.UtcNow,
-            expires: _expires,
-            signingCredentials: credentials);
+    ];
 }

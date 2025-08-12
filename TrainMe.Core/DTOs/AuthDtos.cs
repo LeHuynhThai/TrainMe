@@ -1,49 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TrainMe.Core.DTOs
-{
-    // Request DTOs
-    public class RegisterRequest
-    {
-        [Required(ErrorMessage = "Tên đăng nhập là bắt buộc")]
-        [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên đăng nhập phải từ 3-100 ký tự")]
-        public string UserName { get; set; } = default!;
+namespace TrainMe.Core.DTOs;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải từ 6-100 ký tự")]
-        public string Password { get; set; } = default!;
-    }
+public record RegisterRequest(
+    [Required, StringLength(100, MinimumLength = 3)] string UserName,
+    [Required, StringLength(100, MinimumLength = 6)] string Password);
 
-    public class LoginRequest
-    {
-        [Required(ErrorMessage = "Tên đăng nhập là bắt buộc")]
-        public string UserName { get; set; } = default!;
+public record LoginRequest(
+    [Required] string UserName,
+    [Required] string Password);
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        public string Password { get; set; } = default!;
-    }
+public record AuthResponse(string AccessToken, DateTime ExpiresAt, UserDto User);
 
-    // Response DTOs
-    public class AuthResponse
-    {
-        public string AccessToken { get; set; } = default!;
-        public DateTime ExpiresAt { get; set; }
-        public UserInfoDto User { get; set; } = default!;
-    }
-
-    public class UserInfoDto
-    {
-        public int Id { get; set; }
-        public string UserName { get; set; } = default!;
-        public string Role { get; set; } = default!;
-        public DateTime CreatedAt { get; set; }
-    }
-
-    public class RegisterResponse
-    {
-        public int Id { get; set; }
-        public string UserName { get; set; } = default!;
-        public string Role { get; set; } = default!;
-        public DateTime CreatedAt { get; set; }
-    }
-}
+public record UserDto(int Id, string UserName, string Role, DateTime CreatedAt);

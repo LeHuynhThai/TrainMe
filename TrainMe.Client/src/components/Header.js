@@ -19,27 +19,43 @@ const Header = () => {
     <header className="header">
       {/* Logo */}
       <div className="header-logo">
-        <span>TrainMe</span>
+        <div className="logo-icon">TM</div>
+        <span className="logo-text">TrainMe</span>
       </div>
 
-      {/* User Info */}
-      {user && (
-        <div className="header-user">
-          <div className="user-info">
-            <div className="user-avatar">
-              {getInitials(user.userName)}
-            </div>
-            <span className="user-name">{user.userName}</span>
-          </div>
+      {/* Navigation & User */}
+      <div className="header-nav">
+        {/* Navigation Menu */}
+        <nav className="nav-menu">
+          <span className="nav-item">Dashboard</span>
+          <span className="nav-item">Courses</span>
+          <span className="nav-item">Progress</span>
+          <span className="nav-item">About</span>
+        </nav>
 
-          <button
-            onClick={handleLogout}
-            className="btn btn-danger"
-          >
-            Đăng xuất
-          </button>
-        </div>
-      )}
+        {/* User Info */}
+        {user && (
+          <div className="header-user">
+            <div className="user-info">
+              <div className="user-avatar">
+                {getInitials(user.userName)}
+              </div>
+              <span className="user-name">{user.userName}</span>
+            </div>
+
+            <button className="contact-btn">
+              Contact
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="btn btn-danger"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 };

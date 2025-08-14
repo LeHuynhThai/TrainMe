@@ -144,7 +144,11 @@ const WorkoutSchedule = () => {
       </div>
 
       {/* Weekly Schedule */}
-      <div className="weekly-schedule">
+      <div className="schedule-container">
+        <div className="schedule-hint">
+          <p>💡 Vuốt ngang để xem tất cả các ngày trong tuần</p>
+        </div>
+        <div className="weekly-schedule">
         {daysOfWeek.map(day => (
           <div key={day.key} className="day-column">
             <div 
@@ -207,6 +211,7 @@ const WorkoutSchedule = () => {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );

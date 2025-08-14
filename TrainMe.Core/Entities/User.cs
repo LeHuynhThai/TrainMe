@@ -9,4 +9,7 @@ public class User
     [Required] public string PasswordHash { get; set; } = default!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [MaxLength(50)] public string Role { get; set; } = "User";
+
+    // Navigation properties
+    public virtual ICollection<WorkoutItem> WorkoutItems { get; set; } = new List<WorkoutItem>();
 }

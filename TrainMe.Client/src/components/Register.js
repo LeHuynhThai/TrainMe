@@ -55,10 +55,27 @@ const Register = () => {
   };
 
   return (
-    <div className="main-content">
-      <div className="container fade-in">
-        <div className="card">
-          <div className="card-header">
+    <div className="auth-page">
+      {/* Header */}
+      <header className="auth-header">
+        <div className="auth-header-content">
+          <div className="header-logo">
+            <div className="logo-icon">TM</div>
+            <span className="logo-text">TrainMe</span>
+          </div>
+          <nav className="nav-menu">
+            <span className="nav-item">Dashboard</span>
+            <span className="nav-item">Courses</span>
+            <span className="nav-item">Progress</span>
+            <span className="nav-item">About</span>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="auth-content">
+        <div className="auth-card">
+          <div className="auth-card-header">
             <h2>Đăng ký</h2>
             <p>Tạo tài khoản TrainMe mới</p>
           </div>
@@ -130,7 +147,7 @@ const Register = () => {
             </button>
           </form>
 
-          <div className="text-center mt-3">
+          <div className="auth-footer">
             <p className="text-muted">Đã có tài khoản?</p>
             <Link to="/login" className="btn btn-secondary">
               Đăng nhập ngay

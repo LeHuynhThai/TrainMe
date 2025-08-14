@@ -43,15 +43,11 @@ const Header = () => {
               <span className="user-name">{user.userName}</span>
             </div>
 
-            <button className="contact-btn">
-              Contact
-            </button>
-
             <button
               onClick={handleLogout}
               className="btn btn-danger"
             >
-              Logout
+              Đăng xuất
             </button>
           </div>
         )}

@@ -101,7 +101,7 @@ const WorkoutSchedule = () => {
   return (
     <div className="workout-schedule">
       <div className="workout-header">
-        <h1>Quản Lý Bài Tập Thể Dục</h1>
+        <h1>Lịch Tập Thể Dục</h1>
         <div className="workout-stats">
           <span className="total-workouts">
             Tổng số bài tập: <strong>{getTotalWorkouts()}</strong>

@@ -28,7 +28,7 @@ const Header = () => {
         {/* Navigation Menu */}
         <nav className="nav-menu">
           <span className="nav-item">Dashboard</span>
-          <span className="nav-item">Courses</span>
+          <span className="nav-item">Workout</span>
           <span className="nav-item">Progress</span>
           <span className="nav-item">About</span>
         </nav>

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import WorkoutPage from './components/WorkoutPage';
 
 // Loading Screen Component
 const LoadingScreen = () => (
@@ -57,7 +58,13 @@ function App() {
                 <Dashboard />
               </PrivateRoute>
             } />
-            
+
+            <Route path="/workout" element={
+              <PrivateRoute>
+                <WorkoutPage />
+              </PrivateRoute>
+            } />
+
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>

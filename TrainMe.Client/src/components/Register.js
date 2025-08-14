@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
-
+  
   const [formData, setFormData] = useState({
     userName: '',
     password: '',
@@ -14,13 +14,6 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,109 +26,98 @@ const Register = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
+    if (formData.password.length < 3 || formData.password.length > 8) {
+      setError('Mật khẩu phải có từ 3-8 ký tự');
       return;
     }
 
     setLoading(true);
 
-    try {
-      const result = await register(formData.userName, formData.password);
-      if (result.success) {
-        setSuccess('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else {
-        setError(result.message || 'Đăng ký thất bại');
-      }
-    } catch (err) {
-      setError('Có lỗi xảy ra khi đăng ký');
-    } finally {
-      setLoading(false);
+    const result = await register(formData.userName, formData.password);
+    
+    if (result.success) {
+      setSuccess('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } else {
+      setError(result.message);
     }
+    
+    setLoading(false);
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
-    <div className="container" style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      padding: '20px'
-    }}>
-      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-        <div className="card-header">
-          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
-            🎯 Tham gia TrainMe
-          </h2>
-          <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>
-            Tạo tài khoản mới để bắt đầu
-          </p>
-        </div>
+    <div className="main-content">
+      <div className="container fade-in">
+        <div className="card">
+          <div className="card-header">
+            <h2>Đăng ký</h2>
+            <p>Tạo tài khoản TrainMe mới</p>
+          </div>
 
-        <div className="card-body">
           {error && (
             <div className="alert alert-danger">
-              <strong>Lỗi!</strong> {error}
+              <strong>Lỗi:</strong> {error}
             </div>
           )}
 
           {success && (
             <div className="alert alert-success">
-              <strong>Thành công!</strong> {success}
+              <strong>Thành công:</strong> {success}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">
-                👤 Tên đăng nhập
-              </label>
+              <label className="form-label">Tên đăng nhập</label>
               <input
                 type="text"
                 name="userName"
+                className="form-control"
+                placeholder="Nhập tên đăng nhập (tối thiểu 3 ký tự)"
                 value={formData.userName}
                 onChange={handleChange}
                 required
-                className="form-control"
-                placeholder="Chọn tên đăng nhập của bạn"
-                autoComplete="username"
                 minLength="3"
+                maxLength="100"
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">
-                🔒 Mật khẩu
-              </label>
+              <label className="form-label">Mật khẩu</label>
               <input
                 type="password"
                 name="password"
+                className="form-control"
+                placeholder="Nhập mật khẩu (3-8 ký tự)"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="form-control"
-                placeholder="Tạo mật khẩu mạnh (ít nhất 6 ký tự)"
-                autoComplete="new-password"
-                minLength="6"
+                minLength="3"
+                maxLength="8"
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">
-                🔐 Xác nhận mật khẩu
-              </label>
+              <label className="form-label">Xác nhận mật khẩu</label>
               <input
                 type="password"
                 name="confirmPassword"
+                className="form-control"
+                placeholder="Nhập lại mật khẩu"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className="form-control"
-                placeholder="Nhập lại mật khẩu để xác nhận"
-                autoComplete="new-password"
+                minLength="3"
+                maxLength="8"
               />
             </div>
 
@@ -143,32 +125,14 @@ const Register = () => {
               type="submit"
               disabled={loading}
               className={`btn btn-primary ${loading ? 'loading' : ''}`}
-              style={{ width: '100%', fontSize: '16px', padding: '14px' }}
             >
-              {loading ? (
-                <>
-                  <span style={{ marginRight: '8px' }}>⏳</span>
-                  Đang đăng ký...
-                </>
-              ) : (
-                <>
-                  <span style={{ marginRight: '8px' }}>🎯</span>
-                  Đăng ký tài khoản
-                </>
-              )}
+              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
             </button>
           </form>
 
           <div className="text-center mt-3">
-            <p style={{ color: '#6c757d', marginBottom: '16px' }}>
-              Đã có tài khoản?
-            </p>
-            <Link
-              to="/login"
-              className="btn btn-secondary"
-              style={{ textDecoration: 'none' }}
-            >
-              <span style={{ marginRight: '8px' }}>🚪</span>
+            <p className="text-muted">Đã có tài khoản?</p>
+            <Link to="/login" className="btn btn-secondary">
               Đăng nhập ngay
             </Link>
           </div>

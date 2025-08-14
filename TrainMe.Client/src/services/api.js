@@ -1,32 +1,25 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5178/api'; // Port của .NET API
-
+// Tạo axios instance với base URL
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: 'http://localhost:5178/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor để thêm token vào header
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Request Interceptor - Tự động thêm JWT token vào mọi request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-// Interceptor để xử lý response
+// Response Interceptor - Tự động logout khi token hết hạn
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Nếu server trả về 401 (Unauthorized)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
@@ -35,9 +28,15 @@ api.interceptors.response.use(
   }
 );
 
+// Auth API endpoints
 export const authAPI = {
+  // Đăng ký tài khoản
   register: (data) => api.post('/auth/register', data),
+  
+  // Đăng nhập
   login: (data) => api.post('/auth/login', data),
+  
+  // Lấy thông tin user hiện tại
   getCurrentUser: () => api.get('/auth/me'),
 };
 

@@ -4,7 +4,7 @@ namespace TrainMe.Core.DTOs;
 
 public record RegisterRequest(
     [Required, StringLength(100, MinimumLength = 3)] string UserName,
-    [Required, StringLength(100, MinimumLength = 6)] string Password);
+    [Required, StringLength(8, MinimumLength = 3)] string Password);
 
 public record LoginRequest(
     [Required] string UserName,

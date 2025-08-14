@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\TrainMe.Core.csproj" />
     <ProjectReference Include="..\TrainMe.Core\TrainMe.Core.csproj" />
     <ProjectReference Include="..\TrainMe.Data\TrainMe.Data.csproj" />
     <ProjectReference Include="..\TrainMe.Services\TrainMe.Services.csproj" />

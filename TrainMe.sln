@@ -29,6 +29,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "TrainMe.Client", "TrainMe.C
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "52798"
+		SlnRelativePath = "TrainMe.Client\"
 	EndProjectSection
 EndProject
 Global

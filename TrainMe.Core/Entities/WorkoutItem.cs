@@ -32,7 +32,7 @@ public class WorkoutItem
 
 
     [Required]
-    public Weekday DayOfWeek { get; set; } = Weekday.Monday;
+    public Weekday DayOfWeek { get; set; }
 
     public int SortOrder { get; set; } = 0;
 

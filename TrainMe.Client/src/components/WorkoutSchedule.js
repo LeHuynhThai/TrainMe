@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { workoutItemAPI } from '../services/api';
 
 const WorkoutSchedule = () => {
@@ -65,7 +65,6 @@ const WorkoutSchedule = () => {
       const workoutData = {
         name: newWorkout.trim(),
         dayOfWeek: selectedDay,
-        notes: '',
         sortOrder: 0
       };
 
@@ -125,7 +124,6 @@ const WorkoutSchedule = () => {
       const updateData = {
         name: editingText.trim(),
         dayOfWeek: editingWorkout.day,
-        notes: '',
         sortOrder: 0
       };
 

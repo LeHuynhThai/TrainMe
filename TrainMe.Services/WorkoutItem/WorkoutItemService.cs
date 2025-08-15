@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
 using TrainMe.Core.Interfaces.Services.WorkoutItem;

@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
@@ -103,7 +103,6 @@ public class WorkoutItemManagementService : IWorkoutItemManagementService
             {
                 UserId = userId,
                 Name = sourceItem.Name,
-                Notes = sourceItem.Notes,
                 DayOfWeek = targetDay,
                 SortOrder = await _sortRepository.GetNextSortOrderAsync(userId, targetDay),
                 CreatedAt = DateTime.UtcNow,

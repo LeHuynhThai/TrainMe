@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TrainMe.Core.Entities;
 
@@ -29,8 +29,7 @@ public class WorkoutItem
     [Required, MaxLength(200)]
     public string Name { get; set; } = default!;
 
-    [MaxLength(1000)]
-    public string? Notes { get; set; }
+
 
     [Required]
     public Weekday DayOfWeek { get; set; } = Weekday.Monday;

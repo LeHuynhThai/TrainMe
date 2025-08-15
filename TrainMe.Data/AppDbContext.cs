@@ -37,10 +37,7 @@ namespace TrainMe.Data
         {
             modelBuilder.Entity<WorkoutItem>(entity =>
             {
-                // Unique constraint: User can't have duplicate workout item names on same day
-                entity.HasIndex(wi => new { wi.UserId, wi.Name, wi.DayOfWeek }).IsUnique();
-
-                // Index for sorting
+                // Index for sorting and querying
                 entity.HasIndex(wi => new { wi.UserId, wi.DayOfWeek, wi.SortOrder });
             });
         }

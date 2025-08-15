@@ -9,7 +9,7 @@ const WorkoutPage = () => {
       <div className="main-content">
         <WorkoutSchedule />
       </div>
-    </div>
+    </div> 
   );
 };
 

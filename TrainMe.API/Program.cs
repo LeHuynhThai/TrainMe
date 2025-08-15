@@ -15,13 +15,28 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDbContext")));
 
+// Add AutoMapper
+builder.Services.AddAutoMapper(cfg => {
+    cfg.AddProfile<TrainMe.Core.Mapping.MappingProfile>();
+});
+
 // Add Repositories
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.User.IUserRepository, TrainMe.Data.Repositories.User.UserRepository>();
+
+// WorkoutItem Repositories
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWorkoutItemRepository, TrainMe.Data.Repositories.WorkoutItem.WorkoutItemRepository>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWorkoutItemQueryRepository, TrainMe.Data.Repositories.WorkoutItem.WorkoutItemQueryRepository>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWorkoutItemSortRepository, TrainMe.Data.Repositories.WorkoutItem.WorkoutItemSortRepository>();
 
 // Add Services
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IPasswordService, TrainMe.Services.Auth.PasswordService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.ITokenService, TrainMe.Services.Auth.TokenService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IAuthService, TrainMe.Services.Auth.AuthService>();
+
+// WorkoutItem Services
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemService, TrainMe.Services.WorkoutItem.WorkoutItemService>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemQueryService, TrainMe.Services.WorkoutItem.WorkoutItemQueryService>();
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemManagementService, TrainMe.Services.WorkoutItem.WorkoutItemManagementService>();
 
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

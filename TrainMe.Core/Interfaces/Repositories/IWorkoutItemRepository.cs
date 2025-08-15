@@ -5,8 +5,27 @@ namespace TrainMe.Core.Interfaces.Repositories;
 /// <summary>
 /// Repository interface for WorkoutItem entity operations
 /// </summary>
-public interface IWorkoutItemRepository : IBaseRepository<WorkoutItem>
+public interface IWorkoutItemRepository
 {
+    /// <summary>
+    /// Gets a workout item by ID
+    /// </summary>
+    Task<WorkoutItem?> GetByIdAsync(int id);
+
+    /// <summary>
+    /// Creates a new workout item
+    /// </summary>
+    Task<WorkoutItem> CreateAsync(WorkoutItem workoutItem);
+
+    /// <summary>
+    /// Updates an existing workout item
+    /// </summary>
+    Task<WorkoutItem> UpdateAsync(WorkoutItem workoutItem);
+
+    /// <summary>
+    /// Deletes a workout item by ID
+    /// </summary>
+    Task<bool> DeleteAsync(int id);
     /// <summary>
     /// Gets all workout items for a specific user
     /// </summary>

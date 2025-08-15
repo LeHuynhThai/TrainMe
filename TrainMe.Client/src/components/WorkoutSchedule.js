@@ -1,67 +1,111 @@
 import React, { useState, useEffect } from 'react';
+import { workoutItemAPI } from '../services/api';
 
 const WorkoutSchedule = () => {
   const [workouts, setWorkouts] = useState({
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-    sunday: []
+    1: [], // Monday
+    2: [], // Tuesday
+    3: [], // Wednesday
+    4: [], // Thursday
+    5: [], // Friday
+    6: [], // Saturday
+    7: []  // Sunday
   });
 
   const [newWorkout, setNewWorkout] = useState('');
-  const [selectedDay, setSelectedDay] = useState('monday');
+  const [selectedDay, setSelectedDay] = useState(1); // Use numeric values for API
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const daysOfWeek = [
-    { key: 'monday', name: 'Thứ 2', color: '#ef4444' },
-    { key: 'tuesday', name: 'Thứ 3', color: '#f97316' },
-    { key: 'wednesday', name: 'Thứ 4', color: '#eab308' },
-    { key: 'thursday', name: 'Thứ 5', color: '#22c55e' },
-    { key: 'friday', name: 'Thứ 6', color: '#3b82f6' },
-    { key: 'saturday', name: 'Thứ 7', color: '#8b5cf6' },
-    { key: 'sunday', name: 'Chủ nhật', color: '#ec4899' }
+    { key: 1, name: 'Thứ 2', color: '#ef4444' },
+    { key: 2, name: 'Thứ 3', color: '#f97316' },
+    { key: 3, name: 'Thứ 4', color: '#eab308' },
+    { key: 4, name: 'Thứ 5', color: '#22c55e' },
+    { key: 5, name: 'Thứ 6', color: '#3b82f6' },
+    { key: 6, name: 'Thứ 7', color: '#8b5cf6' },
+    { key: 7, name: 'Chủ nhật', color: '#ec4899' }
   ];
 
-  // Load workouts from localStorage
+  // Load workouts from API
   useEffect(() => {
-    const savedWorkouts = localStorage.getItem('workoutSchedule');
-    if (savedWorkouts) {
-      setWorkouts(JSON.parse(savedWorkouts));
-    }
+    loadWorkouts();
   }, []);
 
-  // Save workouts to localStorage
-  useEffect(() => {
-    localStorage.setItem('workoutSchedule', JSON.stringify(workouts));
-  }, [workouts]);
+  // Load workouts from backend API
+  const loadWorkouts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await workoutItemAPI.getWorkoutItemsGrouped();
 
-  // Add new workout
-  const addWorkout = () => {
-    if (newWorkout.trim() === '') return;
-
-    const workout = {
-      id: Date.now(),
-      name: newWorkout.trim()
-    };
-
-    setWorkouts(prev => ({
-      ...prev,
-      [selectedDay]: [...prev[selectedDay], workout]
-    }));
-
-    setNewWorkout('');
+      if (response.data.success) {
+        setWorkouts(response.data.data);
+      } else {
+        setError(response.data.message || 'Không thể tải dữ liệu');
+      }
+    } catch (err) {
+      console.error('Error loading workouts:', err);
+      setError('Lỗi kết nối đến server');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Delete workout
-  const deleteWorkout = (day, workoutId) => {
-    setWorkouts(prev => ({
-      ...prev,
-      [day]: prev[day].filter(workout => workout.id !== workoutId)
-    }));
+  // Add new workout via API
+  const addWorkout = async () => {
+    if (newWorkout.trim() === '') return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const workoutData = {
+        name: newWorkout.trim(),
+        dayOfWeek: selectedDay,
+        notes: '',
+        sortOrder: 0
+      };
+
+      const response = await workoutItemAPI.createWorkoutItem(workoutData);
+
+      if (response.data.success) {
+        // Reload workouts to get updated data
+        await loadWorkouts();
+        setNewWorkout('');
+      } else {
+        setError(response.data.message || 'Không thể thêm bài tập');
+      }
+    } catch (err) {
+      console.error('Error adding workout:', err);
+      setError('Lỗi khi thêm bài tập');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete workout via API
+  const deleteWorkout = async (day, workoutId) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await workoutItemAPI.deleteWorkoutItem(workoutId);
+
+      if (response.data.success) {
+        // Reload workouts to get updated data
+        await loadWorkouts();
+      } else {
+        setError(response.data.message || 'Không thể xóa bài tập');
+      }
+    } catch (err) {
+      console.error('Error deleting workout:', err);
+      setError('Lỗi khi xóa bài tập');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Start editing workout
@@ -70,21 +114,37 @@ const WorkoutSchedule = () => {
     setEditingText(workout.name);
   };
 
-  // Save edited workout
-  const saveEdit = () => {
+  // Save edited workout via API
+  const saveEdit = async () => {
     if (editingText.trim() === '') return;
 
-    setWorkouts(prev => ({
-      ...prev,
-      [editingWorkout.day]: prev[editingWorkout.day].map(workout =>
-        workout.id === editingWorkout.id
-          ? { ...workout, name: editingText.trim() }
-          : workout
-      )
-    }));
+    try {
+      setLoading(true);
+      setError('');
 
-    setEditingWorkout(null);
-    setEditingText('');
+      const updateData = {
+        name: editingText.trim(),
+        dayOfWeek: editingWorkout.day,
+        notes: '',
+        sortOrder: 0
+      };
+
+      const response = await workoutItemAPI.updateWorkoutItem(editingWorkout.id, updateData);
+
+      if (response.data.success) {
+        // Reload workouts to get updated data
+        await loadWorkouts();
+        setEditingWorkout(null);
+        setEditingText('');
+      } else {
+        setError(response.data.message || 'Không thể cập nhật bài tập');
+      }
+    } catch (err) {
+      console.error('Error updating workout:', err);
+      setError('Lỗi khi cập nhật bài tập');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Cancel editing
@@ -95,7 +155,7 @@ const WorkoutSchedule = () => {
 
   // Calculate total workouts
   const getTotalWorkouts = () => {
-    return Object.values(workouts).reduce((total, dayWorkouts) => total + dayWorkouts.length, 0);
+    return Object.values(workouts).reduce((total, dayWorkouts) => total + (dayWorkouts?.length || 0), 0);
   };
 
   return (
@@ -106,8 +166,23 @@ const WorkoutSchedule = () => {
           <span className="total-workouts">
             Tổng số bài tập: <strong>{getTotalWorkouts()}</strong>
           </span>
+          {loading && <span className="loading">Đang tải...</span>}
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="error-message" style={{
+          backgroundColor: '#fee2e2',
+          color: '#dc2626',
+          padding: '12px',
+          borderRadius: '6px',
+          marginBottom: '16px',
+          border: '1px solid #fecaca'
+        }}>
+          {error}
+        </div>
+      )}
 
       {/* Add Workout Form */}
       <div className="add-workout-form">
@@ -136,9 +211,9 @@ const WorkoutSchedule = () => {
           <button
             onClick={addWorkout}
             className="btn btn-primary add-btn"
-            disabled={!newWorkout.trim()}
+            disabled={!newWorkout.trim() || loading}
           >
-            Thêm bài tập
+            {loading ? 'Đang thêm...' : 'Thêm bài tập'}
           </button>
         </div>
       </div>
@@ -157,12 +232,12 @@ const WorkoutSchedule = () => {
             >
               <h3>{day.name}</h3>
               <span className="workout-count">
-                {workouts[day.key].length} bài tập
+                {workouts[day.key]?.length || 0} bài tập
               </span>
             </div>
             
             <div className="workout-list">
-              {workouts[day.key].map(workout => (
+              {(workouts[day.key] || []).map(workout => (
                 <div key={workout.id} className="workout-item">
                   {editingWorkout?.day === day.key && editingWorkout?.id === workout.id ? (
                     <div className="edit-form">
@@ -203,7 +278,7 @@ const WorkoutSchedule = () => {
                 </div>
               ))}
               
-              {workouts[day.key].length === 0 && (
+              {(!workouts[day.key] || workouts[day.key].length === 0) && (
                 <div className="empty-day">
                   <p>Chưa có bài tập nào</p>
                 </div>

@@ -39,10 +39,7 @@ public class WorkoutItemService : IWorkoutItemService
             if (request == null)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Request cannot be null");
 
-            // Business rule: Check for duplicate names on the same day
-            var exists = await _queryRepository.ExistsAsync(userId, request.Name, request.DayOfWeek);
-            if (exists)
-                return ApiResponse<WorkoutItemDto>.ErrorResult($"Workout item '{request.Name}' already exists for {request.DayOfWeek}");
+
 
             // Map request to entity
             var workoutItem = _mapper.Map<Core.Entities.WorkoutItem>(request);
@@ -114,10 +111,7 @@ public class WorkoutItemService : IWorkoutItemService
             if (existingItem.UserId != userId)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Unauthorized to update this workout item");
 
-            // Business rule: Check for duplicate names (excluding current item)
-            var exists = await _queryRepository.ExistsAsync(userId, request.Name, request.DayOfWeek, id);
-            if (exists)
-                return ApiResponse<WorkoutItemDto>.ErrorResult($"Workout item '{request.Name}' already exists for {request.DayOfWeek}");
+
 
             // Map updates to existing entity
             _mapper.Map(request, existingItem);

@@ -11,7 +11,9 @@ public class WorkoutItemQueryRepository(AppDbContext context) : IWorkoutItemQuer
 {
     public async Task<IEnumerable<Core.Entities.WorkoutItem>> GetByUserIdAsync(int userId)
     {
+        // Use AsNoTracking for read-only queries to improve performance
         return await context.WorkoutItems
+            .AsNoTracking()
             .Where(wi => wi.UserId == userId)
             .OrderBy(wi => wi.DayOfWeek)
             .ThenBy(wi => wi.SortOrder)
@@ -20,7 +22,9 @@ public class WorkoutItemQueryRepository(AppDbContext context) : IWorkoutItemQuer
 
     public async Task<IEnumerable<Core.Entities.WorkoutItem>> GetByUserIdAndDayAsync(int userId, Weekday dayOfWeek)
     {
+        // Use AsNoTracking and compound filter for optimal query performance
         return await context.WorkoutItems
+            .AsNoTracking()
             .Where(wi => wi.UserId == userId && wi.DayOfWeek == dayOfWeek)
             .OrderBy(wi => wi.SortOrder)
             .ToListAsync();
@@ -28,7 +32,9 @@ public class WorkoutItemQueryRepository(AppDbContext context) : IWorkoutItemQuer
 
     public async Task<IEnumerable<Core.Entities.WorkoutItem>> GetByUserIdOrderedAsync(int userId)
     {
+        // Use AsNoTracking with comprehensive ordering for display purposes
         return await context.WorkoutItems
+            .AsNoTracking()
             .Where(wi => wi.UserId == userId)
             .OrderBy(wi => wi.DayOfWeek)
             .ThenBy(wi => wi.SortOrder)
@@ -38,11 +44,14 @@ public class WorkoutItemQueryRepository(AppDbContext context) : IWorkoutItemQuer
 
     public async Task<bool> ExistsAsync(int userId, string name, Weekday dayOfWeek, int? excludeId = null)
     {
+        // Use AsNoTracking for existence check with conditional filtering
         var query = context.WorkoutItems
-            .Where(wi => wi.UserId == userId && 
-                        wi.Name == name && 
+            .AsNoTracking()
+            .Where(wi => wi.UserId == userId &&
+                        wi.Name == name &&
                         wi.DayOfWeek == dayOfWeek);
 
+        // Apply exclude filter if provided (for update scenarios)
         if (excludeId.HasValue)
         {
             query = query.Where(wi => wi.Id != excludeId.Value);

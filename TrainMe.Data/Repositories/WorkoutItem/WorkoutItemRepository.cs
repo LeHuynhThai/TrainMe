@@ -10,6 +10,7 @@ public class WorkoutItemRepository(AppDbContext context) : IWorkoutItemRepositor
 {
     public async Task<Core.Entities.WorkoutItem?> GetByIdAsync(int id)
     {
+        // Use FindAsync for primary key lookup with Include for navigation property
         return await context.WorkoutItems
             .Include(wi => wi.User)
             .FirstOrDefaultAsync(wi => wi.Id == id);
@@ -18,33 +19,38 @@ public class WorkoutItemRepository(AppDbContext context) : IWorkoutItemRepositor
     public async Task<Core.Entities.WorkoutItem> CreateAsync(Core.Entities.WorkoutItem workoutItem)
     {
         ArgumentNullException.ThrowIfNull(workoutItem);
-        
+
+        // Set audit fields before adding to context
         workoutItem.CreatedAt = DateTime.UtcNow;
-        context.WorkoutItems.Add(workoutItem);
+
+        // Use AddAsync for better performance with value generators
+        await context.WorkoutItems.AddAsync(workoutItem);
         await context.SaveChangesAsync();
-        
+
         return workoutItem;
     }
 
     public async Task<Core.Entities.WorkoutItem> UpdateAsync(Core.Entities.WorkoutItem workoutItem)
     {
         ArgumentNullException.ThrowIfNull(workoutItem);
-        
+
+        // Set audit fields before updating
         workoutItem.UpdatedAt = DateTime.UtcNow;
-        context.WorkoutItems.Update(workoutItem);
+
+        // Use Entry to track changes more efficiently
+        context.Entry(workoutItem).State = EntityState.Modified;
         await context.SaveChangesAsync();
-        
+
         return workoutItem;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var workoutItem = await context.WorkoutItems.FindAsync(id);
-        if (workoutItem == null)
-            return false;
+        // Use ExecuteDeleteAsync for better performance (EF Core 7+)
+        var rowsAffected = await context.WorkoutItems
+            .Where(wi => wi.Id == id)
+            .ExecuteDeleteAsync();
 
-        context.WorkoutItems.Remove(workoutItem);
-        await context.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 }

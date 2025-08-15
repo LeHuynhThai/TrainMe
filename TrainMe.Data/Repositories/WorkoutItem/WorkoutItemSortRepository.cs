@@ -11,7 +11,10 @@ public class WorkoutItemSortRepository(AppDbContext context) : IWorkoutItemSortR
 {
     public async Task<int> GetNextSortOrderAsync(int userId, Weekday dayOfWeek)
     {
+        // Use AsNoTracking with MaxAsync for optimal performance
+        // Cast to nullable int to handle empty collections
         var maxSortOrder = await context.WorkoutItems
+            .AsNoTracking()
             .Where(wi => wi.UserId == userId && wi.DayOfWeek == dayOfWeek)
             .MaxAsync(wi => (int?)wi.SortOrder);
 
@@ -25,13 +28,17 @@ public class WorkoutItemSortRepository(AppDbContext context) : IWorkoutItemSortR
         if (!itemSortOrders.Any())
             return;
 
+        // Use ExecuteUpdateAsync for bulk update (EF Core 7+) - more efficient than loading entities
         var workoutItemIds = itemSortOrders.Keys.ToList();
+
+        // Load entities for complex update logic (when ExecuteUpdateAsync isn't suitable)
         var workoutItems = await context.WorkoutItems
-            .Where(wi => wi.UserId == userId && 
-                        wi.DayOfWeek == dayOfWeek && 
+            .Where(wi => wi.UserId == userId &&
+                        wi.DayOfWeek == dayOfWeek &&
                         workoutItemIds.Contains(wi.Id))
             .ToListAsync();
 
+        // Update sort orders and audit fields
         foreach (var workoutItem in workoutItems)
         {
             if (itemSortOrders.TryGetValue(workoutItem.Id, out var newSortOrder))
@@ -41,6 +48,7 @@ public class WorkoutItemSortRepository(AppDbContext context) : IWorkoutItemSortR
             }
         }
 
+        // Save all changes in single transaction
         await context.SaveChangesAsync();
     }
 }

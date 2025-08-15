@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TrainMe.Core.DTOs;
@@ -14,7 +14,7 @@ namespace TrainMe.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // All endpoints require authentication
-public class WorkoutItemsController : BaseController
+public class WorkoutItemsController : ControllerBase
 {
     private readonly IWorkoutItemService _workoutItemService;
     private readonly IWorkoutItemQueryService _queryService;
@@ -34,14 +34,13 @@ public class WorkoutItemsController : BaseController
     /// Creates a new workout item for the authenticated user
     /// </summary>
     [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<WorkoutItemDto>), 201)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> CreateWorkoutItem([FromBody] CreateWorkoutItemRequest request)
     {
         // Validate model state
-        var validationResult = ValidateModelState();
-        if (validationResult != null) return validationResult;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
+        }
 
         // Get authenticated user ID
         var userId = GetCurrentUserId();
@@ -50,31 +49,26 @@ public class WorkoutItemsController : BaseController
 
         // Create workout item through service
         var response = await _workoutItemService.CreateWorkoutItemAsync(userId.Value, request);
-        
-        return response.Success 
+
+        return response.Success
             ? CreatedAtAction(nameof(GetWorkoutItem), new { id = response.Data!.Id }, response)
-            : CreateResponse(response);
+            : BadRequest(response);
     }
 
     /// <summary>
     /// Gets a specific workout item by ID
     /// </summary>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(ApiResponse<WorkoutItemDto>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 404)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> GetWorkoutItem(int id)
     {
         var response = await _workoutItemService.GetWorkoutItemByIdAsync(id);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Gets all workout items for the authenticated user
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<WorkoutItemDto>>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> GetMyWorkoutItems()
     {
         // Get authenticated user ID
@@ -83,16 +77,13 @@ public class WorkoutItemsController : BaseController
             return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
 
         var response = await _queryService.GetWorkoutItemsByUserIdAsync(userId.Value);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Gets workout items for the authenticated user by day of week
     /// </summary>
     [HttpGet("day/{dayOfWeek:int}")]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<WorkoutItemDto>>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> GetWorkoutItemsByDay(int dayOfWeek)
     {
         // Validate day of week
@@ -105,15 +96,13 @@ public class WorkoutItemsController : BaseController
             return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
 
         var response = await _queryService.GetWorkoutItemsByUserIdAndDayAsync(userId.Value, (Weekday)dayOfWeek);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Gets workout items grouped by day of week for the authenticated user
     /// </summary>
     [HttpGet("grouped")]
-    [ProducesResponseType(typeof(ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> GetWorkoutItemsGrouped()
     {
         // Get authenticated user ID
@@ -122,23 +111,20 @@ public class WorkoutItemsController : BaseController
             return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
 
         var response = await _queryService.GetWorkoutItemsGroupedByDayAsync(userId.Value);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Updates an existing workout item
     /// </summary>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(typeof(ApiResponse<WorkoutItemDto>), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 404)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
-    [ProducesResponseType(typeof(ApiResponse), 403)]
     public async Task<IActionResult> UpdateWorkoutItem(int id, [FromBody] UpdateWorkoutItemRequest request)
     {
         // Validate model state
-        var validationResult = ValidateModelState();
-        if (validationResult != null) return validationResult;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
+        }
 
         // Get authenticated user ID
         var userId = GetCurrentUserId();
@@ -147,17 +133,13 @@ public class WorkoutItemsController : BaseController
 
         // Update workout item through service
         var response = await _workoutItemService.UpdateWorkoutItemAsync(id, userId.Value, request);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Deletes a workout item
     /// </summary>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(typeof(ApiResponse), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 404)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
-    [ProducesResponseType(typeof(ApiResponse), 403)]
     public async Task<IActionResult> DeleteWorkoutItem(int id)
     {
         // Get authenticated user ID
@@ -167,21 +149,20 @@ public class WorkoutItemsController : BaseController
 
         // Delete workout item through service
         var response = await _workoutItemService.DeleteWorkoutItemAsync(id, userId.Value);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Reorders workout items for a specific day
     /// </summary>
     [HttpPut("reorder")]
-    [ProducesResponseType(typeof(ApiResponse), 200)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
     public async Task<IActionResult> ReorderWorkoutItems([FromBody] ReorderWorkoutItemsRequest request)
     {
         // Validate model state
-        var validationResult = ValidateModelState();
-        if (validationResult != null) return validationResult;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
+        }
 
         // Get authenticated user ID
         var userId = GetCurrentUserId();
@@ -190,23 +171,20 @@ public class WorkoutItemsController : BaseController
 
         // Reorder workout items through management service
         var response = await _managementService.ReorderWorkoutItemsAsync(userId.Value, request.DayOfWeek, request.ItemSortOrders);
-        return CreateResponse(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
     /// Duplicates a workout item to another day
     /// </summary>
     [HttpPost("{id:int}/duplicate")]
-    [ProducesResponseType(typeof(ApiResponse<WorkoutItemDto>), 201)]
-    [ProducesResponseType(typeof(ApiResponse), 400)]
-    [ProducesResponseType(typeof(ApiResponse), 404)]
-    [ProducesResponseType(typeof(ApiResponse), 401)]
-    [ProducesResponseType(typeof(ApiResponse), 403)]
     public async Task<IActionResult> DuplicateWorkoutItem(int id, [FromBody] DuplicateWorkoutItemRequest request)
     {
         // Validate model state
-        var validationResult = ValidateModelState();
-        if (validationResult != null) return validationResult;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
+        }
 
         // Get authenticated user ID
         var userId = GetCurrentUserId();
@@ -215,10 +193,10 @@ public class WorkoutItemsController : BaseController
 
         // Duplicate workout item through management service
         var response = await _managementService.DuplicateWorkoutItemAsync(id, userId.Value, request.TargetDay);
-        
-        return response.Success 
+
+        return response.Success
             ? CreatedAtAction(nameof(GetWorkoutItem), new { id = response.Data!.Id }, response)
-            : CreateResponse(response);
+            : BadRequest(response);
     }
 
     /// <summary>

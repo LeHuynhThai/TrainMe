@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
@@ -76,14 +76,15 @@ public class WorkoutItemQueryService : IWorkoutItemQueryService
     /// <summary>
     /// Retrieves workout items grouped by day of week for better organization
     /// Provides a comprehensive view of user's weekly workout schedule
+    /// Returns data with integer keys (1-7) for frontend compatibility
     /// </summary>
-    public async Task<ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>> GetWorkoutItemsGroupedByDayAsync(int userId)
+    public async Task<ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>> GetWorkoutItemsGroupedByDayAsync(int userId)
     {
         try
         {
             // Validate input
             if (userId <= 0)
-                return ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>.ErrorResult("Invalid user ID");
+                return ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>.ErrorResult("Invalid user ID");
 
             // Retrieve all workout items for the user
             var workoutItems = await _queryRepository.GetByUserIdOrderedAsync(userId);
@@ -92,24 +93,25 @@ public class WorkoutItemQueryService : IWorkoutItemQueryService
             var groupedItems = workoutItems
                 .GroupBy(wi => wi.DayOfWeek)
                 .ToDictionary(
-                    group => group.Key,
+                    group => (int)group.Key, // Convert enum to int for frontend compatibility
                     group => _mapper.Map<IEnumerable<WorkoutItemSummaryDto>>(group.AsEnumerable())
                 );
 
             // Ensure all days of week are represented (even if empty)
-            var completeWeek = new Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>();
+            var completeWeek = new Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>();
             foreach (Weekday day in Enum.GetValues<Weekday>())
             {
-                completeWeek[day] = groupedItems.ContainsKey(day) 
-                    ? groupedItems[day] 
+                var dayInt = (int)day;
+                completeWeek[dayInt] = groupedItems.ContainsKey(dayInt)
+                    ? groupedItems[dayInt]
                     : Enumerable.Empty<WorkoutItemSummaryDto>();
             }
 
-            return ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>.SuccessResult(completeWeek);
+            return ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>.SuccessResult(completeWeek);
         }
         catch (Exception ex)
         {
-            return ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>.ErrorResult($"Failed to retrieve grouped workout items: {ex.Message}");
+            return ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>.ErrorResult($"Failed to retrieve grouped workout items: {ex.Message}");
         }
     }
 }

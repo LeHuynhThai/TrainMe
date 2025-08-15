@@ -20,6 +20,7 @@ public interface IWorkoutItemQueryService
 
     /// <summary>
     /// Gets workout items for a specific user grouped by day of week
+    /// Returns data with integer keys (1-7) for frontend compatibility
     /// </summary>
-    Task<ApiResponse<Dictionary<Weekday, IEnumerable<WorkoutItemSummaryDto>>>> GetWorkoutItemsGroupedByDayAsync(int userId);
+    Task<ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>> GetWorkoutItemsGroupedByDayAsync(int userId);
 }

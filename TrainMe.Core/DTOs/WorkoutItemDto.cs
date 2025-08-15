@@ -49,3 +49,20 @@ public class WorkoutItemSummaryDto
     public Weekday DayOfWeek { get; set; }
     public int SortOrder { get; set; }
 }
+
+/// <summary>
+/// DTO for reordering workout items
+/// </summary>
+public class ReorderWorkoutItemsRequest
+{
+    public Weekday DayOfWeek { get; set; }
+    public Dictionary<int, int> ItemSortOrders { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for duplicating workout item to another day
+/// </summary>
+public class DuplicateWorkoutItemRequest
+{
+    public Weekday TargetDay { get; set; }
+}

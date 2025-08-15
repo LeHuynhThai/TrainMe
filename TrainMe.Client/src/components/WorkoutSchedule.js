@@ -187,7 +187,7 @@ const WorkoutSchedule = () => {
         <div className="form-row">
           <select
             value={selectedDay}
-            onChange={(e) => setSelectedDay(e.target.value)}
+            onChange={(e) => setSelectedDay(parseInt(e.target.value))}
             className="day-select"
           >
             {daysOfWeek.map(day => (

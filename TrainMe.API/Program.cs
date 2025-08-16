@@ -44,6 +44,9 @@ builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkout
 // RandomExercise Service
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.IRandomExerciseService, TrainMe.Services.RandomExerciseService>();
 
+// BMI Service
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.IBmiService, TrainMe.Services.BmiService>();
+
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

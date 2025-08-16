@@ -155,21 +155,26 @@ const WorkoutSchedule = () => {
   // Generate random workouts for all days if no workouts exist
   const generateRandomWorkouts = async () => {
     try {
+      console.log('Starting generateRandomWorkouts...');
       setRandomLoading(true);
       setError('');
 
       // Check if there are any workouts
       const totalWorkouts = getTotalWorkouts();
+      console.log('Total workouts:', totalWorkouts);
       if (totalWorkouts > 0) {
         setError('Đã có bài tập trong lịch. Vui lòng xóa tất cả bài tập trước khi tạo lịch ngẫu nhiên.');
         return;
       }
 
       // Get 7 random exercises (one for each day)
+      console.log('Calling randomExerciseAPI.getRandomExercises(7)...');
       const response = await randomExerciseAPI.getRandomExercises(7);
+      console.log('Random exercises response:', response);
 
       if (response.data.success && response.data.data) {
         const randomExercises = response.data.data;
+        console.log('Random exercises data:', randomExercises);
 
         // Create workout items for each day (Monday to Sunday)
         for (let dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
@@ -182,7 +187,9 @@ const WorkoutSchedule = () => {
               dayOfWeek: dayOfWeek
             };
 
-            await workoutItemAPI.createWorkoutItem(workoutData);
+            console.log(`Creating workout for day ${dayOfWeek}:`, workoutData);
+            const createResponse = await workoutItemAPI.createWorkoutItem(workoutData);
+            console.log(`Create response for day ${dayOfWeek}:`, createResponse);
           }
         }
 
@@ -197,6 +204,19 @@ const WorkoutSchedule = () => {
       setError('Có lỗi xảy ra khi tạo lịch tập ngẫu nhiên');
     } finally {
       setRandomLoading(false);
+    }
+  };
+
+  // Test API function
+  const testRandomAPI = async () => {
+    try {
+      console.log('Testing random API...');
+      const response = await randomExerciseAPI.getRandomExercises(3);
+      console.log('Test API response:', response);
+      alert('API test successful! Check console for details.');
+    } catch (error) {
+      console.error('API test failed:', error);
+      alert('API test failed! Check console for details.');
     }
   };
 
@@ -270,6 +290,14 @@ const WorkoutSchedule = () => {
             title="Tạo lịch tập ngẫu nhiên cho cả tuần (chỉ khi chưa có bài tập nào)"
           >
             {randomLoading ? 'Đang tạo...' : '🎲 Bài tập ngẫu nhiên'}
+          </button>
+
+          <button
+            onClick={testRandomAPI}
+            className="btn btn-warning"
+            style={{marginLeft: '10px', fontSize: '0.7rem', padding: '0.3rem 0.5rem'}}
+          >
+            Test API
           </button>
         </div>
       </div>

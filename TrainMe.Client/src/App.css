@@ -686,7 +686,7 @@ body {
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin: 2rem auto 2rem auto;
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
 }
 
@@ -709,6 +709,8 @@ body {
   max-width: 120px;
   flex-shrink: 0;
   margin: 0.25rem 0;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .workout-input {
@@ -718,8 +720,10 @@ body {
   border-radius: 4px;
   font-size: 0.8rem;
   min-width: 200px;
-  max-width: 250px;
+  max-width: 300px;
   margin: 0.25rem 0;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .workout-input:focus {
@@ -732,20 +736,24 @@ body {
   padding: 0.5rem 1rem;
   white-space: nowrap;
   font-size: 0.8rem;
-  min-width: 110px;
-  max-width: 140px;
+  min-width: 120px;
+  max-width: 150px;
   flex-shrink: 0;
   margin: 0.25rem 0;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .random-btn {
   padding: 0.5rem 0.8rem;
   white-space: nowrap;
   font-size: 0.8rem;
-  min-width: 120px;
-  max-width: 160px;
+  min-width: 140px;
+  max-width: 170px;
   flex-shrink: 0;
   margin: 0.25rem 0;
+  height: 40px;
+  box-sizing: border-box;
   background-color: #8b5cf6;
   color: white;
   border: none;

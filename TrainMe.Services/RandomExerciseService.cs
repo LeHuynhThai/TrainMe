@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Repositories;
 using TrainMe.Core.Interfaces.Services;
@@ -28,7 +28,7 @@ public class RandomExerciseService : IRandomExerciseService
         {
             var exercises = await _repository.GetAllAsync();
             var exerciseDtos = _mapper.Map<IEnumerable<RandomExerciseDto>>(exercises);
-            
+
             return ApiResponse<IEnumerable<RandomExerciseDto>>.SuccessResult(exerciseDtos);
         }
         catch (Exception ex)
@@ -45,7 +45,7 @@ public class RandomExerciseService : IRandomExerciseService
         try
         {
             var exercise = await _repository.GetRandomAsync();
-            
+
             if (exercise == null)
                 return ApiResponse<RandomExerciseDto>.ErrorResult("No exercises found");
 
@@ -70,7 +70,7 @@ public class RandomExerciseService : IRandomExerciseService
 
             var exercises = await _repository.GetRandomAsync(count);
             var exerciseDtos = _mapper.Map<IEnumerable<RandomExerciseDto>>(exercises);
-            
+
             return ApiResponse<IEnumerable<RandomExerciseDto>>.SuccessResult(exerciseDtos);
         }
         catch (Exception ex)

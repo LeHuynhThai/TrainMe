@@ -1,4 +1,4 @@
-using TrainMe.Core.DTOs;
+﻿using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Services;
 
 namespace TrainMe.Services;
@@ -100,7 +100,7 @@ public class BmiService : IBmiService
             );
 
             return ApiResponse<BmiCalculationResponse>.SuccessResult(
-                response, 
+                response,
                 $"BMI của bạn là {bmiValue} - {category.Category}");
         }
         catch (Exception ex)
@@ -118,7 +118,7 @@ public class BmiService : IBmiService
         try
         {
             return ApiResponse<IEnumerable<BmiCategoryInfo>>.SuccessResult(
-                BmiCategories, 
+                BmiCategories,
                 "Lấy danh sách phân loại BMI thành công");
         }
         catch (Exception ex)
@@ -135,7 +135,7 @@ public class BmiService : IBmiService
     {
         try
         {
-            var category = BmiCategories.FirstOrDefault(c => 
+            var category = BmiCategories.FirstOrDefault(c =>
                 bmiValue >= c.MinBmi && (c.MaxBmi == null || bmiValue < c.MaxBmi));
 
             if (category == null)
@@ -145,7 +145,7 @@ public class BmiService : IBmiService
             }
 
             return ApiResponse<BmiCategoryInfo>.SuccessResult(
-                category, 
+                category,
                 "Xác định phân loại BMI thành công");
         }
         catch (Exception ex)

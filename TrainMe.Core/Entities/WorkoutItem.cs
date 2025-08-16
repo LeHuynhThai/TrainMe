@@ -25,7 +25,7 @@ public class WorkoutItem
 
     [Required]
     public int UserId { get; set; }
-    
+
     [Required, MaxLength(200)]
     public string Name { get; set; } = default!;
 

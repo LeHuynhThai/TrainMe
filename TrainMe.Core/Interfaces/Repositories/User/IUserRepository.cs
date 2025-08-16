@@ -1,6 +1,4 @@
-using TrainMe.Core.Entities;
-
-namespace TrainMe.Core.Interfaces.Repositories.User;
+﻿namespace TrainMe.Core.Interfaces.Repositories.User;
 
 public interface IUserRepository
 {

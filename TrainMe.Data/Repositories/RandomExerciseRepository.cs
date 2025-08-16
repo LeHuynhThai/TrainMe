@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories;
 
@@ -33,7 +33,7 @@ public class RandomExerciseRepository : IRandomExerciseRepository
     {
         var exercises = await GetAllAsync();
         var exerciseList = exercises.ToList();
-        
+
         if (!exerciseList.Any())
             return null;
 
@@ -49,7 +49,7 @@ public class RandomExerciseRepository : IRandomExerciseRepository
     {
         var exercises = await GetAllAsync();
         var exerciseList = exercises.ToList();
-        
+
         if (!exerciseList.Any())
             return Enumerable.Empty<RandomExercise>();
 

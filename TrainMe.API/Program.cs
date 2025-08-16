@@ -3,9 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using TrainMe.Core.Interfaces.Services.Auth;
 using TrainMe.Data;
-using TrainMe.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +14,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDbContext")));
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(cfg => {
+builder.Services.AddAutoMapper(cfg =>
+{
     cfg.AddProfile<TrainMe.Core.Mapping.MappingProfile>();
 });
 
@@ -52,7 +51,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TrainMe API", Version = "v1" });
-    
+
     // Cấu hình JWT cho Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Services;
 
@@ -36,16 +36,16 @@ public class BmiController : ControllerBase
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .ToList();
-            
+
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
                 "Dữ liệu không hợp lệ", errors));
         }
 
         var result = _bmiService.CalculateBmi(request);
-        
+
         if (result.Success)
             return Ok(result);
-        
+
         return BadRequest(result);
     }
 
@@ -59,10 +59,10 @@ public class BmiController : ControllerBase
     public IActionResult GetBmiCategories()
     {
         var result = _bmiService.GetBmiCategories();
-        
+
         if (result.Success)
             return Ok(result);
-        
+
         return StatusCode(500, result);
     }
 
@@ -84,10 +84,10 @@ public class BmiController : ControllerBase
         }
 
         var result = _bmiService.GetBmiCategory(bmiValue);
-        
+
         if (result.Success)
             return Ok(result);
-        
+
         return BadRequest(result);
     }
 
@@ -102,18 +102,18 @@ public class BmiController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<BmiCalculationResponse>), 400)]
     [ProducesResponseType(500)]
     public IActionResult QuickCalculate(
-        [FromQuery] double height, 
+        [FromQuery] double height,
         [FromQuery] double weight)
     {
         var request = new BmiCalculationRequest(height, weight);
-        
+
         // Manual validation for query parameters
         if (height < 0.5 || height > 3.0)
         {
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
                 "Chiều cao phải từ 0.5m đến 3.0m"));
         }
-        
+
         if (weight < 10 || weight > 500)
         {
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
@@ -121,10 +121,10 @@ public class BmiController : ControllerBase
         }
 
         var result = _bmiService.CalculateBmi(request);
-        
+
         if (result.Success)
             return Ok(result);
-        
+
         return BadRequest(result);
     }
 }

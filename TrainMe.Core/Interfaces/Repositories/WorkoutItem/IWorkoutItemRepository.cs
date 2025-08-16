@@ -1,6 +1,4 @@
-using TrainMe.Core.Entities;
-
-namespace TrainMe.Core.Interfaces.Repositories.WorkoutItem;
+﻿namespace TrainMe.Core.Interfaces.Repositories.WorkoutItem;
 
 /// <summary>
 /// Basic CRUD operations for WorkoutItem entity

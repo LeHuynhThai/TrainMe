@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
-using TrainMe.Core.Interfaces.Repositories;
 using TrainMe.Core.Interfaces.Repositories.User;
 using TrainMe.Core.Interfaces.Services.Auth;
 

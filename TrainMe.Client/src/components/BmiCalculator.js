@@ -2,21 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { bmiAPI } from '../services/api';
 import Header from './Header';
 
+/**
+ * BMI Calculator Component
+ * Provides functionality to calculate BMI and display health recommendations
+ */
 const BmiCalculator = () => {
+  // Form data state for height and weight inputs
   const [formData, setFormData] = useState({
     height: '',
     weight: ''
   });
+
+  // BMI calculation result state
   const [result, setResult] = useState(null);
+
+  // BMI categories reference data
   const [categories, setCategories] = useState([]);
+
+  // Loading state for API calls
   const [loading, setLoading] = useState(false);
+
+  // Error message state
   const [error, setError] = useState('');
 
-  // Load BMI categories on component mount
+  /**
+   * Load BMI categories on component mount
+   * Fetches the reference table of BMI categories from the API
+   */
   useEffect(() => {
     loadCategories();
   }, []);
 
+  /**
+   * Loads BMI categories from the API
+   * Used to populate the reference table on the right side
+   */
   const loadCategories = async () => {
     try {
       const response = await bmiAPI.getCategories();
@@ -28,13 +48,18 @@ const BmiCalculator = () => {
     }
   };
 
+  /**
+   * Handles input field changes
+   * Updates form data and clears previous results/errors
+   * @param {Event} e - Input change event
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear previous results when input changes
     if (result) {
       setResult(null);
@@ -44,13 +69,18 @@ const BmiCalculator = () => {
     }
   };
 
+  /**
+   * Calculates BMI using the API
+   * Validates input data and sends request to backend
+   * @param {Event} e - Form submit event
+   */
   const calculateBmi = async (e) => {
     e.preventDefault();
-    
+
     const height = parseFloat(formData.height);
     const weight = parseFloat(formData.weight);
 
-    // Validation
+    // Client-side validation
     if (!height || !weight) {
       setError('Vui lòng nhập đầy đủ chiều cao và cân nặng');
       return;
@@ -69,7 +99,8 @@ const BmiCalculator = () => {
     try {
       setLoading(true);
       setError('');
-      
+
+      // Call BMI calculation API
       const response = await bmiAPI.calculateBmi({
         height: height,
         weight: weight
@@ -88,43 +119,56 @@ const BmiCalculator = () => {
     }
   };
 
+  /**
+   * Resets the form to initial state
+   * Clears all input fields, results, and error messages
+   */
   const resetForm = () => {
     setFormData({ height: '', weight: '' });
     setResult(null);
     setError('');
   };
 
+  /**
+   * Returns appropriate color for BMI category
+   * Used for visual coding of different BMI ranges
+   * @param {string} category - BMI category name
+   * @returns {string} - Hex color code
+   */
   const getBmiCategoryColor = (category) => {
     switch (category) {
       case 'Thiếu cân nghiêm trọng':
       case 'Thiếu cân':
-        return '#3b82f6'; // Blue
+        return '#3b82f6'; // Blue - Underweight
       case 'Bình thường':
-        return '#22c55e'; // Green
+        return '#22c55e'; // Green - Normal
       case 'Thừa cân':
-        return '#f59e0b'; // Yellow
+        return '#f59e0b'; // Yellow - Overweight
       case 'Béo phì độ I':
-        return '#f97316'; // Orange
+        return '#f97316'; // Orange - Obesity Class I
       case 'Béo phì độ II':
       case 'Béo phì độ III':
-        return '#ef4444'; // Red
+        return '#ef4444'; // Red - Obesity Class II & III
       default:
-        return '#6b7280'; // Gray
+        return '#6b7280'; // Gray - Default
     }
   };
 
   return (
     <div className="bmi-page">
+      {/* Header navigation */}
       <Header />
-      
+
       <div className="bmi-container">
+        {/* Page title and description */}
         <div className="bmi-header">
           <h1>Máy Tính BMI</h1>
           <p>Tính chỉ số khối cơ thể (BMI) và nhận lời khuyên sức khỏe</p>
         </div>
 
+        {/* Main content with two equal-height columns */}
         <div className="bmi-content">
-          {/* BMI Calculator Form */}
+          {/* Left column: BMI Calculator Form */}
           <div className="bmi-calculator">
             <h2>Tính BMI của bạn</h2>
             
@@ -226,16 +270,19 @@ const BmiCalculator = () => {
             )}
           </div>
 
-          {/* BMI Categories Reference */}
+          {/* Right column: BMI Categories Reference Table */}
           <div className="bmi-categories">
             <h2>Bảng phân loại BMI</h2>
             <div className="categories-list">
+              {/* Render each BMI category with color coding */}
               {categories.map((category, index) => (
                 <div key={index} className="category-item">
-                  <div 
+                  {/* Color indicator for visual reference */}
+                  <div
                     className="category-indicator"
                     style={{ backgroundColor: getBmiCategoryColor(category.category) }}
                   ></div>
+                  {/* Category information */}
                   <div className="category-info">
                     <div className="category-name">{category.category}</div>
                     <div className="category-range">

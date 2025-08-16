@@ -35,6 +35,12 @@ const Header = () => {
           >
             Workout
           </Link>
+          <Link
+            to="/bmi"
+            className={`nav-item ${location.pathname === '/bmi' ? 'active' : ''}`}
+          >
+            BMI Calculator
+          </Link>
         </nav>
 
         {/* User Info */}

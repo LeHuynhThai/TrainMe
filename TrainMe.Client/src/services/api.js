@@ -82,4 +82,19 @@ export const randomExerciseAPI = {
   getRandomExercises: (count) => api.get(`/randomexercise/random/${count}`),
 };
 
+// BMI API endpoints
+export const bmiAPI = {
+  // Tính BMI với POST request
+  calculateBmi: (data) => api.post('/bmi/calculate', data),
+
+  // Tính BMI nhanh với GET request
+  quickCalculate: (height, weight) => api.get(`/bmi/quick?height=${height}&weight=${weight}`),
+
+  // Lấy tất cả phân loại BMI
+  getCategories: () => api.get('/bmi/categories'),
+
+  // Lấy phân loại BMI theo giá trị
+  getCategory: (bmiValue) => api.get(`/bmi/category/${bmiValue}`),
+};
+
 export default api;

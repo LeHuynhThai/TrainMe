@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import WorkoutPage from './components/WorkoutPage';
+import BmiCalculator from './components/BmiCalculator';
 
 // Loading Screen Component
 const LoadingScreen = () => (
@@ -55,6 +56,12 @@ function App() {
             <Route path="/workout" element={
               <PrivateRoute>
                 <WorkoutPage />
+              </PrivateRoute>
+            } />
+
+            <Route path="/bmi" element={
+              <PrivateRoute>
+                <BmiCalculator />
               </PrivateRoute>
             } />
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -39,7 +39,7 @@ const Register = () => {
       setSuccess('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
       setTimeout(() => {
         navigate('/login');
-      }, 2000);
+      }, 1000);
     } else {
       setError(result.message);
     }

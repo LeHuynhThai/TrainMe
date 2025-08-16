@@ -1,8 +1,10 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   // Lấy chữ cái đầu của username để làm avatar
   const getInitials = (name) => {
@@ -27,10 +29,12 @@ const Header = () => {
       <div className="header-nav">
         {/* Navigation Menu */}
         <nav className="nav-menu">
-          <span className="nav-item">Dashboard</span>
-          <span className="nav-item">Workout</span>
-          <span className="nav-item">Progress</span>
-          <span className="nav-item">About</span>
+          <Link
+            to="/workout"
+            className={`nav-item ${location.pathname === '/workout' ? 'active' : ''}`}
+          >
+            Workout
+          </Link>
         </nav>
 
         {/* User Info */}

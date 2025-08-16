@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
-import Dashboard from './components/Dashboard';
 import WorkoutPage from './components/WorkoutPage';
 
 // Loading Screen Component
@@ -28,9 +27,9 @@ const PrivateRoute = ({ children }) => {
 // Public Route - Chỉ cho phép user chưa login
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) return <LoadingScreen />;
-  return user ? <Navigate to="/dashboard" /> : children;
+  return user ? <Navigate to="/workout" /> : children;
 };
 
 function App() {
@@ -53,12 +52,6 @@ function App() {
             } />
             
             {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } />
-
             <Route path="/workout" element={
               <PrivateRoute>
                 <WorkoutPage />
@@ -66,7 +59,7 @@ function App() {
             } />
 
             {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/workout" />} />
           </Routes>
         </div>
       </Router>

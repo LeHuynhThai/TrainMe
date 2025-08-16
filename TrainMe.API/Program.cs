@@ -28,6 +28,9 @@ builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWor
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWorkoutItemQueryRepository, TrainMe.Data.Repositories.WorkoutItem.WorkoutItemQueryRepository>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.WorkoutItem.IWorkoutItemSortRepository, TrainMe.Data.Repositories.WorkoutItem.WorkoutItemSortRepository>();
 
+// RandomExercise Repository
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Repositories.IRandomExerciseRepository, TrainMe.Data.Repositories.RandomExerciseRepository>();
+
 // Add Services
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IPasswordService, TrainMe.Services.Auth.PasswordService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.ITokenService, TrainMe.Services.Auth.TokenService>();
@@ -37,6 +40,9 @@ builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.Auth.IAuthService, T
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemService, TrainMe.Services.WorkoutItem.WorkoutItemService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemQueryService, TrainMe.Services.WorkoutItem.WorkoutItemQueryService>();
 builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.WorkoutItem.IWorkoutItemManagementService, TrainMe.Services.WorkoutItem.WorkoutItemManagementService>();
+
+// RandomExercise Service
+builder.Services.AddScoped<TrainMe.Core.Interfaces.Services.IRandomExerciseService, TrainMe.Services.RandomExerciseService>();
 
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

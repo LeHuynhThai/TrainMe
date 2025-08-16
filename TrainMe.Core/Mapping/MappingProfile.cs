@@ -13,6 +13,7 @@ public class MappingProfile : Profile
     {
         ConfigureUserMappings();
         ConfigureWorkoutItemMappings();
+        ConfigureRandomExerciseMappings();
     }
 
     private void ConfigureUserMappings()
@@ -57,5 +58,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.User, opt => opt.Ignore());
+    }
+
+    private void ConfigureRandomExerciseMappings()
+    {
+        // RandomExercise to DTO
+        CreateMap<RandomExercise, RandomExerciseDto>();
     }
 }

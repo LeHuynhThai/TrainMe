@@ -70,4 +70,16 @@ export const workoutItemAPI = {
   duplicateWorkoutItem: (id, data) => api.post(`/workoutitems/${id}/duplicate`, data),
 };
 
+// RandomExercise API endpoints
+export const randomExerciseAPI = {
+  // Lấy tất cả bài tập ngẫu nhiên
+  getAllExercises: () => api.get('/randomexercise'),
+
+  // Lấy 1 bài tập ngẫu nhiên
+  getRandomExercise: () => api.get('/randomexercise/random'),
+
+  // Lấy nhiều bài tập ngẫu nhiên
+  getRandomExercises: (count) => api.get(`/randomexercise/random/${count}`),
+};
+
 export default api;

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { workoutItemAPI } from '../services/api';
+import { workoutItemAPI, randomExerciseAPI } from '../services/api';
 
 const WorkoutSchedule = () => {
   const [workouts, setWorkouts] = useState({
@@ -18,6 +18,7 @@ const WorkoutSchedule = () => {
   const [editingText, setEditingText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [randomLoading, setRandomLoading] = useState(false);
 
   const daysOfWeek = [
     { key: 1, name: 'Thứ 2', color: '#ef4444' },
@@ -151,6 +152,54 @@ const WorkoutSchedule = () => {
     setEditingText('');
   };
 
+  // Generate random workouts for all days if no workouts exist
+  const generateRandomWorkouts = async () => {
+    try {
+      setRandomLoading(true);
+      setError('');
+
+      // Check if there are any workouts
+      const totalWorkouts = getTotalWorkouts();
+      if (totalWorkouts > 0) {
+        setError('Đã có bài tập trong lịch. Vui lòng xóa tất cả bài tập trước khi tạo lịch ngẫu nhiên.');
+        return;
+      }
+
+      // Get 7 random exercises (one for each day)
+      const response = await randomExerciseAPI.getRandomExercises(7);
+
+      if (response.data.success && response.data.data) {
+        const randomExercises = response.data.data;
+
+        // Create workout items for each day (Monday to Sunday)
+        for (let dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
+          const exerciseIndex = (dayOfWeek - 1) % randomExercises.length;
+          const exercise = randomExercises[exerciseIndex];
+
+          if (exercise) {
+            const workoutData = {
+              name: exercise.name,
+              dayOfWeek: dayOfWeek
+            };
+
+            await workoutItemAPI.createWorkoutItem(workoutData);
+          }
+        }
+
+        // Reload workouts to show the new random schedule
+        await loadWorkouts();
+
+      } else {
+        setError('Không thể lấy bài tập ngẫu nhiên từ server');
+      }
+    } catch (err) {
+      console.error('Error generating random workouts:', err);
+      setError('Có lỗi xảy ra khi tạo lịch tập ngẫu nhiên');
+    } finally {
+      setRandomLoading(false);
+    }
+  };
+
   // Calculate total workouts
   const getTotalWorkouts = () => {
     return Object.values(workouts).reduce((total, dayWorkouts) => total + (dayWorkouts?.length || 0), 0);
@@ -212,6 +261,15 @@ const WorkoutSchedule = () => {
             disabled={!newWorkout.trim() || loading}
           >
             {loading ? 'Đang thêm...' : 'Thêm bài tập'}
+          </button>
+
+          <button
+            onClick={generateRandomWorkouts}
+            className="btn btn-secondary random-btn"
+            disabled={randomLoading || loading}
+            title="Tạo lịch tập ngẫu nhiên cho cả tuần (chỉ khi chưa có bài tập nào)"
+          >
+            {randomLoading ? 'Đang tạo...' : '🎲 Bài tập ngẫu nhiên'}
           </button>
         </div>
       </div>

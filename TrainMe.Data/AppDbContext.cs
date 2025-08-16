@@ -10,11 +10,13 @@ namespace TrainMe.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<WorkoutItem> WorkoutItems { get; set; }
+        public DbSet<RandomExercise> RandomExercises { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             ConfigureUserEntity(modelBuilder);
             ConfigureWorkoutItemEntity(modelBuilder);
+            ConfigureRandomExerciseEntity(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
         }
@@ -39,6 +41,15 @@ namespace TrainMe.Data
             {
                 // Index for sorting and querying
                 entity.HasIndex(wi => new { wi.UserId, wi.DayOfWeek, wi.SortOrder });
+            });
+        }
+
+        private static void ConfigureRandomExerciseEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RandomExercise>(entity =>
+            {
+                // Basic configuration for RandomExercise
+                // No additional indexes needed for simplified entity
             });
         }
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories.User;
@@ -6,6 +6,10 @@ using TrainMe.Core.Interfaces.Services.Auth;
 
 namespace TrainMe.Services.Auth;
 
+/// <summary>
+/// Service xử lý nghiệp vụ xác thực: đăng ký, đăng nhập,
+/// và lấy thông tin người dùng hiện tại dựa trên userId.
+/// </summary>
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
@@ -13,6 +17,13 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly ILogger<AuthService> _logger;
 
+    /// <summary>
+    /// Khởi tạo AuthService với các phụ thuộc cần thiết.
+    /// </summary>
+    /// <param name="userRepository">Repository người dùng</param>
+    /// <param name="passwordService">Service băm/xác thực mật khẩu</param>
+    /// <param name="tokenService">Service tạo token JWT</param>
+    /// <param name="logger">Bộ ghi log</param>
     public AuthService(IUserRepository userRepository, IPasswordService passwordService,
         ITokenService tokenService, ILogger<AuthService> logger)
     {
@@ -22,6 +33,11 @@ public class AuthService : IAuthService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Đăng ký tài khoản mới.
+    /// </summary>
+    /// <param name="request">Thông tin đăng ký</param>
+    /// <returns>ApiResponse chứa <see cref="UserDto"/> nếu thành công</returns>
     public async Task<ApiResponse<UserDto>> RegisterAsync(RegisterRequest request)
     {
         try
@@ -40,6 +56,11 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Đăng nhập hệ thống.
+    /// </summary>
+    /// <param name="request">Thông tin đăng nhập</param>
+    /// <returns>ApiResponse chứa <see cref="AuthResponse"/> (token + thông tin người dùng) nếu thành công</returns>
     public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request)
     {
         try
@@ -61,6 +82,11 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Lấy thông tin người dùng hiện tại theo Id.
+    /// </summary>
+    /// <param name="userId">Id người dùng</param>
+    /// <returns>ApiResponse chứa <see cref="UserDto"/>, hoặc lỗi nếu không tồn tại</returns>
     public async Task<ApiResponse<UserDto>> GetCurrentUserAsync(int userId)
     {
         try
@@ -77,6 +103,11 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Tạo entity User từ yêu cầu đăng ký.
+    /// </summary>
+    /// <param name="request">Thông tin đăng ký</param>
+    /// <returns>Đối tượng User đã khởi tạo</returns>
     private User CreateUser(RegisterRequest request) => new()
     {
         UserName = request.UserName,
@@ -85,10 +116,20 @@ public class AuthService : IAuthService
         CreatedAt = DateTime.UtcNow
     };
 
+    /// <summary>
+    /// Tạo phản hồi xác thực chứa token và thông tin người dùng.
+    /// </summary>
+    /// <param name="user">Người dùng</param>
+    /// <returns><see cref="AuthResponse"/></returns>
     private AuthResponse CreateAuthResponse(User user) => new(
         _tokenService.CreateAccessToken(user),
         _tokenService.GetExpiration(),
         MapToUserDto(user));
 
+    /// <summary>
+    /// Ánh xạ entity User sang DTO.
+    /// </summary>
+    /// <param name="user">Entity User</param>
+    /// <returns><see cref="UserDto"/></returns>
     private static UserDto MapToUserDto(User user) => new(user.Id, user.UserName, user.Role, user.CreatedAt);
 }

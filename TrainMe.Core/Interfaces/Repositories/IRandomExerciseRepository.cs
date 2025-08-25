@@ -3,7 +3,7 @@ using TrainMe.Core.Entities;
 namespace TrainMe.Core.Interfaces.Repositories;
 
 /// <summary>
-/// Repository interface for RandomExercise entity
+/// Interface repository cho entity RandomExercise
 /// </summary>
 public interface IRandomExerciseRepository
 {

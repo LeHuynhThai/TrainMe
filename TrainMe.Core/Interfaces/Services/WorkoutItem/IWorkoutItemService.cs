@@ -3,7 +3,7 @@ using TrainMe.Core.DTOs;
 namespace TrainMe.Core.Interfaces.Services.WorkoutItem;
 
 /// <summary>
-/// Basic CRUD operations for WorkoutItem business logic
+/// Các thao tác CRUD cơ bản cho business logic của WorkoutItem
 /// </summary>
 public interface IWorkoutItemService
 {

@@ -5,7 +5,7 @@ using TrainMe.Core.Entities;
 namespace TrainMe.Core.Mapping;
 
 /// <summary>
-/// AutoMapper profile for all entity mappings
+/// Cấu hình AutoMapper cho tất cả các entity
 /// </summary>
 public class MappingProfile : Profile
 {

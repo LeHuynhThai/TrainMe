@@ -3,7 +3,7 @@ using TrainMe.Core.Entities;
 namespace TrainMe.Core.Interfaces.Repositories.WorkoutItem;
 
 /// <summary>
-/// Query operations for WorkoutItem entity
+/// Các thao tác truy vấn cho entity WorkoutItem
 /// </summary>
 public interface IWorkoutItemQueryRepository
 {

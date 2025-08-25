@@ -4,7 +4,7 @@ using TrainMe.Core.Entities;
 namespace TrainMe.Core.Interfaces.Services.WorkoutItem;
 
 /// <summary>
-/// Query operations for WorkoutItem business logic
+/// Các thao tác truy vấn cho business logic của WorkoutItem
 /// </summary>
 public interface IWorkoutItemQueryService
 {

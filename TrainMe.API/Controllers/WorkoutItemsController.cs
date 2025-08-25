@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TrainMe.Core.DTOs;
@@ -8,18 +8,27 @@ using TrainMe.Core.Interfaces.Services.WorkoutItem;
 namespace TrainMe.API.Controllers;
 
 /// <summary>
-/// Controller for managing workout items following RESTful API best practices
-/// Handles CRUD operations, queries, and advanced management features
+/// Controller quản lý các bài tập (Workout Item) theo chuẩn RESTful API
+/// Xử lý các chức năng CRUD, truy vấn và các tính năng quản lý nâng cao
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // All endpoints require authentication
+[Authorize] // Tất cả các endpoint đều yêu cầu xác thực
 public class WorkoutItemsController : ControllerBase
 {
+    // Service xử lý các thao tác CRUD cho bài tập
     private readonly IWorkoutItemService _workoutItemService;
+    // Service xử lý truy vấn nâng cao cho bài tập
     private readonly IWorkoutItemQueryService _queryService;
+    // Service xử lý quản lý nâng cao (ví dụ: sắp xếp, sao chép) cho bài tập
     private readonly IWorkoutItemManagementService _managementService;
 
+    /// <summary>
+    /// Hàm khởi tạo controller, inject các service liên quan đến bài tập
+    /// </summary>
+    /// <param name="workoutItemService">Service CRUD cho bài tập</param>
+    /// <param name="queryService">Service truy vấn nâng cao</param>
+    /// <param name="managementService">Service quản lý nâng cao</param>
     public WorkoutItemsController(
         IWorkoutItemService workoutItemService,
         IWorkoutItemQueryService queryService,
@@ -31,18 +40,18 @@ public class WorkoutItemsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new workout item for the authenticated user
+    /// API tạo mới một bài tập cho người dùng đã đăng nhập
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateWorkoutItem([FromBody] CreateWorkoutItemRequest request)
     {
-        // Validate model state
+        // Kiểm tra dữ liệu đầu vào
         if (!ModelState.IsValid)
         {
             return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
         }
 
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));

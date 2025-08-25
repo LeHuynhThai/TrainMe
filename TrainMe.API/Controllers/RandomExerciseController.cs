@@ -12,29 +12,36 @@ public class RandomExerciseController : ControllerBase
 {
     private readonly IRandomExerciseService _randomExerciseService;
 
+    /// <summary>
+    /// Hàm khởi tạo controller, inject IRandomExerciseService
+    /// </summary>
+    /// <param name="randomExerciseService">Service xử lý logic bài tập ngẫu nhiên</param>
     public RandomExerciseController(IRandomExerciseService randomExerciseService)
     {
         _randomExerciseService = randomExerciseService ?? throw new ArgumentNullException(nameof(randomExerciseService));
     }
 
     /// <summary>
-    /// Gets all random exercises
+    /// API lấy tất cả các bài tập ngẫu nhiên
     /// </summary>
     [HttpGet]
     [ProducesResponseType(200)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetAll()
     {
+        // Gọi service lấy danh sách bài tập ngẫu nhiên
         var result = await _randomExerciseService.GetAllAsync();
 
+        // Nếu thành công trả về kết quả
         if (result.Success)
             return Ok(result);
 
+        // Nếu thất bại trả về lỗi server
         return StatusCode(500, result);
     }
 
     /// <summary>
-    /// Gets a random exercise
+    /// API lấy một bài tập ngẫu nhiên
     /// </summary>
     [HttpGet("random")]
     [ProducesResponseType(200)]
@@ -42,19 +49,23 @@ public class RandomExerciseController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetRandom()
     {
+        // Gọi service lấy một bài tập ngẫu nhiên
         var result = await _randomExerciseService.GetRandomAsync();
 
+        // Nếu thành công trả về kết quả
         if (result.Success)
             return Ok(result);
 
+        // Nếu không tìm thấy bài tập nào trả về 404
         if (result.Message?.Contains("No exercises found") == true)
             return NotFound(result);
 
+        // Nếu lỗi server trả về 500
         return StatusCode(500, result);
     }
 
     /// <summary>
-    /// Gets multiple random exercises
+    /// API lấy nhiều bài tập ngẫu nhiên
     /// </summary>
     [HttpGet("random/{count:int}")]
     [ProducesResponseType(200)]

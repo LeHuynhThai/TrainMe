@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
 using TrainMe.Core.Interfaces.Services.WorkoutItem;
@@ -6,8 +6,8 @@ using TrainMe.Core.Interfaces.Services.WorkoutItem;
 namespace TrainMe.Services.WorkoutItem;
 
 /// <summary>
-/// Service implementation for basic CRUD operations on WorkoutItem entities
-/// Follows SOLID principles and Clean Architecture patterns
+/// Service thực hiện các thao tác CRUD cơ bản cho thực thể WorkoutItem.
+/// Tuân theo các nguyên tắc SOLID và mô hình Clean Architecture.
 /// </summary>
 public class WorkoutItemService : IWorkoutItemService
 {
@@ -26,13 +26,16 @@ public class WorkoutItemService : IWorkoutItemService
     }
 
     /// <summary>
-    /// Creates a new workout item with validation and business rules
+    /// Tạo mới một mục tập luyện với kiểm tra hợp lệ và quy tắc nghiệp vụ.
     /// </summary>
+    /// <param name="userId">ID người dùng sở hữu mục tập</param>
+    /// <param name="request">Thông tin yêu cầu tạo mới</param>
+    /// <returns>ApiResponse chứa WorkoutItemDto vừa được tạo</returns>
     public async Task<ApiResponse<WorkoutItemDto>> CreateWorkoutItemAsync(int userId, CreateWorkoutItemRequest request)
     {
         try
         {
-            // Validate input parameters
+            // Kiểm tra hợp lệ các tham số đầu vào
             if (userId <= 0)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Invalid user ID");
 
@@ -41,41 +44,43 @@ public class WorkoutItemService : IWorkoutItemService
 
 
 
-            // Map request to entity
+            // Ánh xạ request sang entity
             var workoutItem = _mapper.Map<Core.Entities.WorkoutItem>(request);
             workoutItem.UserId = userId;
 
-            // Create entity through repository
+            // Tạo entity thông qua repository
             var createdItem = await _repository.CreateAsync(workoutItem);
 
-            // Map back to DTO for response
+            // Ánh xạ ngược sang DTO để trả về
             var dto = _mapper.Map<WorkoutItemDto>(createdItem);
             return ApiResponse<WorkoutItemDto>.SuccessResult(dto, "Workout item created successfully");
         }
         catch (Exception ex)
         {
-            // Log exception in real implementation
+            // Ghi log ngoại lệ trong triển khai thực tế
             return ApiResponse<WorkoutItemDto>.ErrorResult($"Failed to create workout item: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Retrieves a workout item by ID with proper authorization
+    /// Lấy một mục tập luyện theo ID, kèm kiểm tra hợp lệ/ủy quyền cơ bản.
     /// </summary>
+    /// <param name="id">ID mục tập luyện</param>
+    /// <returns>ApiResponse chứa WorkoutItemDto nếu tìm thấy</returns>
     public async Task<ApiResponse<WorkoutItemDto>> GetWorkoutItemByIdAsync(int id)
     {
         try
         {
-            // Validate input
+            // Kiểm tra đầu vào
             if (id <= 0)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Invalid workout item ID");
 
-            // Retrieve entity from repository
+            // Lấy entity từ repository
             var workoutItem = await _repository.GetByIdAsync(id);
             if (workoutItem == null)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Workout item not found");
 
-            // Map to DTO and return
+            // Ánh xạ sang DTO và trả về
             var dto = _mapper.Map<WorkoutItemDto>(workoutItem);
             return ApiResponse<WorkoutItemDto>.SuccessResult(dto);
         }
@@ -86,13 +91,17 @@ public class WorkoutItemService : IWorkoutItemService
     }
 
     /// <summary>
-    /// Updates an existing workout item with validation and authorization
+    /// Cập nhật một mục tập luyện hiện có với kiểm tra hợp lệ và ủy quyền.
     /// </summary>
+    /// <param name="id">ID mục tập luyện cần cập nhật</param>
+    /// <param name="userId">ID người dùng (để kiểm tra quyền sở hữu)</param>
+    /// <param name="request">Dữ liệu cập nhật</param>
+    /// <returns>ApiResponse chứa WorkoutItemDto sau khi cập nhật</returns>
     public async Task<ApiResponse<WorkoutItemDto>> UpdateWorkoutItemAsync(int id, int userId, UpdateWorkoutItemRequest request)
     {
         try
         {
-            // Validate input parameters
+            // Kiểm tra hợp lệ các tham số đầu vào
             if (id <= 0)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Invalid workout item ID");
 
@@ -102,24 +111,24 @@ public class WorkoutItemService : IWorkoutItemService
             if (request == null)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Request cannot be null");
 
-            // Retrieve existing entity
+            // Lấy entity hiện có
             var existingItem = await _repository.GetByIdAsync(id);
             if (existingItem == null)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Workout item not found");
 
-            // Authorization: Ensure user owns the workout item
+            // Ủy quyền: Đảm bảo người dùng sở hữu mục tập luyện
             if (existingItem.UserId != userId)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Unauthorized to update this workout item");
 
 
 
-            // Map updates to existing entity
+            // Ánh xạ dữ liệu cập nhật vào entity hiện có
             _mapper.Map(request, existingItem);
 
-            // Update through repository
+            // Cập nhật thông qua repository
             var updatedItem = await _repository.UpdateAsync(existingItem);
 
-            // Map to DTO and return
+            // Ánh xạ sang DTO và trả về
             var dto = _mapper.Map<WorkoutItemDto>(updatedItem);
             return ApiResponse<WorkoutItemDto>.SuccessResult(dto, "Workout item updated successfully");
         }
@@ -130,29 +139,32 @@ public class WorkoutItemService : IWorkoutItemService
     }
 
     /// <summary>
-    /// Deletes a workout item with proper authorization
+    /// Xóa một mục tập luyện với kiểm tra ủy quyền phù hợp.
     /// </summary>
+    /// <param name="id">ID mục tập luyện cần xóa</param>
+    /// <param name="userId">ID người dùng (để xác thực quyền xóa)</param>
+    /// <returns>ApiResponse thể hiện kết quả xóa</returns>
     public async Task<ApiResponse> DeleteWorkoutItemAsync(int id, int userId)
     {
         try
         {
-            // Validate input parameters
+            // Kiểm tra hợp lệ các tham số đầu vào
             if (id <= 0)
                 return ApiResponse.ErrorResult("Invalid workout item ID");
 
             if (userId <= 0)
                 return ApiResponse.ErrorResult("Invalid user ID");
 
-            // Retrieve existing entity for authorization
+            // Lấy entity hiện có để kiểm tra ủy quyền
             var existingItem = await _repository.GetByIdAsync(id);
             if (existingItem == null)
                 return ApiResponse.ErrorResult("Workout item not found");
 
-            // Authorization: Ensure user owns the workout item
+            // Ủy quyền: Đảm bảo người dùng sở hữu mục tập luyện
             if (existingItem.UserId != userId)
                 return ApiResponse.ErrorResult("Unauthorized to delete this workout item");
 
-            // Delete through repository
+            // Xóa thông qua repository
             var deleted = await _repository.DeleteAsync(id);
             if (!deleted)
                 return ApiResponse.ErrorResult("Failed to delete workout item");

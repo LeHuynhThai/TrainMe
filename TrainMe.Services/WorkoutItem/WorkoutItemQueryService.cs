@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
@@ -7,8 +7,8 @@ using TrainMe.Core.Interfaces.Services.WorkoutItem;
 namespace TrainMe.Services.WorkoutItem;
 
 /// <summary>
-/// Service implementation for query operations on WorkoutItem entities
-/// Focuses on read-only operations with optimized data retrieval
+/// Service thực hiện các thao tác truy vấn (read-only) cho thực thể WorkoutItem.
+/// Tập trung tối ưu cho việc đọc dữ liệu và sắp xếp kết quả.
 /// </summary>
 public class WorkoutItemQueryService : IWorkoutItemQueryService
 {
@@ -24,20 +24,22 @@ public class WorkoutItemQueryService : IWorkoutItemQueryService
     }
 
     /// <summary>
-    /// Retrieves all workout items for a specific user with proper ordering
+    /// Lấy tất cả mục tập luyện của một người dùng với thứ tự phù hợp.
     /// </summary>
+    /// <param name="userId">ID người dùng</param>
+    /// <returns>ApiResponse chứa danh sách WorkoutItemDto</returns>
     public async Task<ApiResponse<IEnumerable<WorkoutItemDto>>> GetWorkoutItemsByUserIdAsync(int userId)
     {
         try
         {
-            // Validate input
+            // Kiểm tra đầu vào
             if (userId <= 0)
                 return ApiResponse<IEnumerable<WorkoutItemDto>>.ErrorResult("Invalid user ID");
 
-            // Retrieve entities from repository
+            // Lấy dữ liệu từ repository
             var workoutItems = await _queryRepository.GetByUserIdAsync(userId);
 
-            // Map to DTOs
+            // Ánh xạ sang DTO
             var dtos = _mapper.Map<IEnumerable<WorkoutItemDto>>(workoutItems);
 
             return ApiResponse<IEnumerable<WorkoutItemDto>>.SuccessResult(dtos);
@@ -49,20 +51,23 @@ public class WorkoutItemQueryService : IWorkoutItemQueryService
     }
 
     /// <summary>
-    /// Retrieves workout items for a specific user and day of week
+    /// Lấy các mục tập luyện theo người dùng và ngày trong tuần.
     /// </summary>
+    /// <param name="userId">ID người dùng</param>
+    /// <param name="dayOfWeek">Ngày trong tuần cần lọc</param>
+    /// <returns>ApiResponse chứa danh sách WorkoutItemDto</returns>
     public async Task<ApiResponse<IEnumerable<WorkoutItemDto>>> GetWorkoutItemsByUserIdAndDayAsync(int userId, Weekday dayOfWeek)
     {
         try
         {
-            // Validate input
+            // Kiểm tra đầu vào
             if (userId <= 0)
                 return ApiResponse<IEnumerable<WorkoutItemDto>>.ErrorResult("Invalid user ID");
 
-            // Retrieve entities from repository
+            // Lấy dữ liệu từ repository
             var workoutItems = await _queryRepository.GetByUserIdAndDayAsync(userId, dayOfWeek);
 
-            // Map to DTOs
+            // Ánh xạ sang DTO
             var dtos = _mapper.Map<IEnumerable<WorkoutItemDto>>(workoutItems);
 
             return ApiResponse<IEnumerable<WorkoutItemDto>>.SuccessResult(dtos);
@@ -74,30 +79,32 @@ public class WorkoutItemQueryService : IWorkoutItemQueryService
     }
 
     /// <summary>
-    /// Retrieves workout items grouped by day of week for better organization
-    /// Provides a comprehensive view of user's weekly workout schedule
-    /// Returns data with integer keys (1-7) for frontend compatibility
+    /// Lấy danh sách mục tập luyện được nhóm theo ngày trong tuần để dễ quản lý.
+    /// Cung cấp cái nhìn tổng quan lịch tập hàng tuần của người dùng.
+    /// Trả về dữ liệu với khóa số nguyên (1-7) để tương thích frontend.
     /// </summary>
+    /// <param name="userId">ID người dùng</param>
+    /// <returns>ApiResponse chứa Dictionary<int, IEnumerable<WorkoutItemSummaryDto>></returns>
     public async Task<ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>> GetWorkoutItemsGroupedByDayAsync(int userId)
     {
         try
         {
-            // Validate input
+            // Kiểm tra đầu vào
             if (userId <= 0)
                 return ApiResponse<Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>>.ErrorResult("Invalid user ID");
 
-            // Retrieve all workout items for the user
+            // Lấy tất cả mục tập cho người dùng
             var workoutItems = await _queryRepository.GetByUserIdOrderedAsync(userId);
 
-            // Group by day of week and map to summary DTOs
+            // Nhóm theo ngày trong tuần và ánh xạ sang DTO tóm tắt
             var groupedItems = workoutItems
                 .GroupBy(wi => wi.DayOfWeek)
                 .ToDictionary(
-                    group => (int)group.Key, // Convert enum to int for frontend compatibility
+                    group => (int)group.Key, // Chuyển enum sang int để tương thích frontend
                     group => _mapper.Map<IEnumerable<WorkoutItemSummaryDto>>(group.AsEnumerable())
                 );
 
-            // Ensure all days of week are represented (even if empty)
+            // Đảm bảo đủ 7 ngày (kể cả rỗng)
             var completeWeek = new Dictionary<int, IEnumerable<WorkoutItemSummaryDto>>();
             foreach (Weekday day in Enum.GetValues<Weekday>())
             {

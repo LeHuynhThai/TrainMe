@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Entities;
 using TrainMe.Core.Interfaces.Repositories.WorkoutItem;
@@ -7,8 +7,8 @@ using TrainMe.Core.Interfaces.Services.WorkoutItem;
 namespace TrainMe.Services.WorkoutItem;
 
 /// <summary>
-/// Service implementation for advanced management operations on WorkoutItem entities
-/// Handles complex business operations like reordering and duplication
+/// Service xử lý các thao tác quản lý nâng cao cho thực thể WorkoutItem.
+/// Bao gồm các nghiệp vụ phức tạp như sắp xếp lại thứ tự và nhân bản mục tập luyện.
 /// </summary>
 public class WorkoutItemManagementService : IWorkoutItemManagementService
 {
@@ -30,35 +30,39 @@ public class WorkoutItemManagementService : IWorkoutItemManagementService
     }
 
     /// <summary>
-    /// Reorders workout items for a specific user and day
-    /// Ensures data consistency and validates ownership
+    /// Sắp xếp lại thứ tự các mục tập luyện cho một người dùng trong một ngày cụ thể.
+    /// Đảm bảo tính nhất quán dữ liệu và kiểm tra quyền sở hữu.
     /// </summary>
+    /// <param name="userId">ID người dùng</param>
+    /// <param name="dayOfWeek">Ngày trong tuần cần sắp xếp</param>
+    /// <param name="itemSortOrders">Danh sách cặp <Id, SortOrder> cần cập nhật</param>
+    /// <returns>Kết quả API thể hiện trạng thái sắp xếp</returns>
     public async Task<ApiResponse> ReorderWorkoutItemsAsync(int userId, Weekday dayOfWeek, Dictionary<int, int> itemSortOrders)
     {
         try
         {
-            // Validate input parameters
+            // Kiểm tra hợp lệ các tham số đầu vào
             if (userId <= 0)
                 return ApiResponse.ErrorResult("Invalid user ID");
 
             if (itemSortOrders == null || !itemSortOrders.Any())
                 return ApiResponse.ErrorResult("Sort orders cannot be empty");
 
-            // Validate sort order values
+            // Kiểm tra giá trị sort order
             if (itemSortOrders.Values.Any(order => order < 0))
                 return ApiResponse.ErrorResult("Sort orders must be non-negative");
 
-            // Verify all workout items belong to the user and specified day
+            // Xác thực tất cả mục thuộc về người dùng và đúng ngày chỉ định
             var workoutItemIds = itemSortOrders.Keys.ToList();
             var existingItems = await _queryRepository.GetByUserIdAndDayAsync(userId, dayOfWeek);
             var existingIds = existingItems.Select(wi => wi.Id).ToHashSet();
 
-            // Check if all provided IDs exist and belong to the user/day
+            // Kiểm tra tất cả ID cung cấp có tồn tại và thuộc về user/day
             var invalidIds = workoutItemIds.Where(id => !existingIds.Contains(id)).ToList();
             if (invalidIds.Any())
                 return ApiResponse.ErrorResult($"Invalid workout item IDs: {string.Join(", ", invalidIds)}");
 
-            // Perform the reordering operation
+            // Thực hiện thao tác cập nhật thứ tự
             await _sortRepository.UpdateSortOrdersAsync(userId, dayOfWeek, itemSortOrders);
 
             return ApiResponse.SuccessResult("Workout items reordered successfully");
@@ -70,35 +74,39 @@ public class WorkoutItemManagementService : IWorkoutItemManagementService
     }
 
     /// <summary>
-    /// Duplicates a workout item to another day with proper validation
-    /// Creates a new item with updated sort order and timestamps
+    /// Nhân bản một mục tập luyện sang ngày khác với đầy đủ kiểm tra hợp lệ.
+    /// Tạo mục mới với thứ tự sắp xếp (SortOrder) và mốc thời gian phù hợp.
     /// </summary>
+    /// <param name="id">ID mục tập luyện cần nhân bản</param>
+    /// <param name="userId">ID người dùng thực hiện thao tác</param>
+    /// <param name="targetDay">Ngày trong tuần sẽ nhân bản tới</param>
+    /// <returns>ApiResponse chứa WorkoutItemDto sau khi nhân bản</returns>
     public async Task<ApiResponse<WorkoutItemDto>> DuplicateWorkoutItemAsync(int id, int userId, Weekday targetDay)
     {
         try
         {
-            // Validate input parameters
+            // Kiểm tra hợp lệ các tham số đầu vào
             if (id <= 0)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Invalid workout item ID");
 
             if (userId <= 0)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Invalid user ID");
 
-            // Retrieve the source workout item
+            // Lấy mục tập luyện nguồn
             var sourceItem = await _repository.GetByIdAsync(id);
             if (sourceItem == null)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Source workout item not found");
 
-            // Authorization: Ensure user owns the workout item
+            // Ủy quyền: Đảm bảo người dùng sở hữu mục tập luyện
             if (sourceItem.UserId != userId)
                 return ApiResponse<WorkoutItemDto>.ErrorResult("Unauthorized to duplicate this workout item");
 
-            // Business rule: Check if item with same name already exists on target day
+            // Quy tắc nghiệp vụ: Kiểm tra mục trùng tên đã tồn tại ở ngày đích chưa
             var exists = await _queryRepository.ExistsAsync(userId, sourceItem.Name, targetDay);
             if (exists)
                 return ApiResponse<WorkoutItemDto>.ErrorResult($"Workout item '{sourceItem.Name}' already exists for {targetDay}");
 
-            // Create duplicate with new properties
+            // Tạo bản sao với thuộc tính mới
             var duplicateItem = new Core.Entities.WorkoutItem
             {
                 UserId = userId,
@@ -109,10 +117,10 @@ public class WorkoutItemManagementService : IWorkoutItemManagementService
                 UpdatedAt = null
             };
 
-            // Create the duplicate through repository
+            // Tạo bản ghi thông qua repository
             var createdItem = await _repository.CreateAsync(duplicateItem);
 
-            // Map to DTO and return
+            // Ánh xạ sang DTO và trả về
             var dto = _mapper.Map<WorkoutItemDto>(createdItem);
             return ApiResponse<WorkoutItemDto>.SuccessResult(dto, $"Workout item duplicated to {targetDay} successfully");
         }

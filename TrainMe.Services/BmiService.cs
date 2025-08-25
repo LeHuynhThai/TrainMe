@@ -1,10 +1,10 @@
-﻿using TrainMe.Core.DTOs;
+using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Services;
 
 namespace TrainMe.Services;
 
 /// <summary>
-/// Service for BMI calculations and health assessments
+/// Service tính chỉ số BMI (Body Mass Index) và đánh giá sức khỏe.
 /// </summary>
 public class BmiService : IBmiService
 {
@@ -62,23 +62,25 @@ public class BmiService : IBmiService
     };
 
     /// <summary>
-    /// Calculates BMI and provides health assessment
+    /// Tính BMI và đưa ra đánh giá sức khỏe.
     /// </summary>
+    /// <param name="request">Dữ liệu đầu vào gồm chiều cao (m) và cân nặng (kg)</param>
+    /// <returns>Kết quả gồm giá trị BMI và lời khuyên sức khỏe</returns>
     public ApiResponse<BmiCalculationResponse> CalculateBmi(BmiCalculationRequest request)
     {
         try
         {
-            // Validate input
+            // Kiểm tra đầu vào
             if (request.Height <= 0 || request.Weight <= 0)
             {
                 return ApiResponse<BmiCalculationResponse>.ErrorResult(
                     "Chiều cao và cân nặng phải lớn hơn 0");
             }
 
-            // Calculate BMI: weight (kg) / height (m)²
+            // Tính BMI: cân nặng (kg) / (chiều cao (m))^2
             var bmiValue = Math.Round(request.Weight / (request.Height * request.Height), 2);
 
-            // Get BMI category
+            // Xác định phân loại BMI tương ứng
             var categoryResponse = GetBmiCategory(bmiValue);
             if (!categoryResponse.Success || categoryResponse.Data == null)
             {
@@ -88,7 +90,7 @@ public class BmiService : IBmiService
 
             var category = categoryResponse.Data;
 
-            // Create response
+            // Tạo đối tượng phản hồi (response)
             var response = new BmiCalculationResponse(
                 Height: request.Height,
                 Weight: request.Weight,
@@ -111,8 +113,9 @@ public class BmiService : IBmiService
     }
 
     /// <summary>
-    /// Gets all BMI categories with their ranges and descriptions
+    /// Lấy tất cả phân loại BMI cùng khoảng giá trị và mô tả.
     /// </summary>
+    /// <returns>Danh sách phân loại BMI</returns>
     public ApiResponse<IEnumerable<BmiCategoryInfo>> GetBmiCategories()
     {
         try
@@ -129,8 +132,10 @@ public class BmiService : IBmiService
     }
 
     /// <summary>
-    /// Gets BMI category for a specific BMI value
+    /// Lấy thông tin phân loại BMI cho một giá trị BMI cụ thể.
     /// </summary>
+    /// <param name="bmiValue">Giá trị BMI đã tính</param>
+    /// <returns>Thông tin phân loại BMI tương ứng</returns>
     public ApiResponse<BmiCategoryInfo> GetBmiCategory(double bmiValue)
     {
         try

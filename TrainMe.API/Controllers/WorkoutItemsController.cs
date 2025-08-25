@@ -56,163 +56,192 @@ public class WorkoutItemsController : ControllerBase
         if (userId == null)
             return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
 
-        // Create workout item through service
+        // Gọi service để tạo mới bài tập
         var response = await _workoutItemService.CreateWorkoutItemAsync(userId.Value, request);
 
+        // Trả về kết quả: 201 Created nếu thành công, 400 BadRequest nếu thất bại
         return response.Success
             ? CreatedAtAction(nameof(GetWorkoutItem), new { id = response.Data!.Id }, response)
             : BadRequest(response);
     }
 
     /// <summary>
-    /// Gets a specific workout item by ID
+    /// API lấy thông tin chi tiết một bài tập theo ID
     /// </summary>
+    /// <param name="id">ID của bài tập cần lấy</param>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetWorkoutItem(int id)
     {
+        // Gọi service để lấy thông tin bài tập theo ID
         var response = await _workoutItemService.GetWorkoutItemByIdAsync(id);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Gets all workout items for the authenticated user
+    /// API lấy tất cả bài tập của người dùng hiện tại
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetMyWorkoutItems()
     {
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
+        // Gọi service để lấy danh sách bài tập của người dùng
         var response = await _queryService.GetWorkoutItemsByUserIdAsync(userId.Value);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Gets workout items for the authenticated user by day of week
+    /// API lấy danh sách bài tập theo thứ trong tuần
     /// </summary>
+    /// <param name="dayOfWeek">Thứ trong tuần (0-6, bắt đầu từ Chủ nhật)</param>
     [HttpGet("day/{dayOfWeek:int}")]
     public async Task<IActionResult> GetWorkoutItemsByDay(int dayOfWeek)
     {
-        // Validate day of week
+        // Kiểm tra thứ trong tuần có hợp lệ không
         if (!Enum.IsDefined(typeof(Weekday), dayOfWeek))
-            return BadRequest(ApiResponse.ErrorResult("Invalid day of week"));
+            return BadRequest(ApiResponse.ErrorResult("Thứ trong tuần không hợp lệ"));
 
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
+        // Gọi service để lấy danh sách bài tập theo ngày
         var response = await _queryService.GetWorkoutItemsByUserIdAndDayAsync(userId.Value, (Weekday)dayOfWeek);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Gets workout items grouped by day of week for the authenticated user
+    /// API lấy danh sách bài tập được nhóm theo thứ trong tuần
     /// </summary>
     [HttpGet("grouped")]
     public async Task<IActionResult> GetWorkoutItemsGrouped()
     {
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
+        // Gọi service để lấy danh sách bài tập đã nhóm theo thứ
         var response = await _queryService.GetWorkoutItemsGroupedByDayAsync(userId.Value);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Updates an existing workout item
+    /// API cập nhật thông tin bài tập
     /// </summary>
+    /// <param name="id">ID của bài tập cần cập nhật</param>
+    /// <param name="request">Dữ liệu cập nhật</param>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateWorkoutItem(int id, [FromBody] UpdateWorkoutItemRequest request)
     {
-        // Validate model state
+        // Kiểm tra dữ liệu đầu vào
         if (!ModelState.IsValid)
         {
             return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
         }
 
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
-        // Update workout item through service
+        // Gọi service để cập nhật bài tập
         var response = await _workoutItemService.UpdateWorkoutItemAsync(id, userId.Value, request);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Deletes a workout item
+    /// API xóa một bài tập
     /// </summary>
+    /// <param name="id">ID của bài tập cần xóa</param>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteWorkoutItem(int id)
     {
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
-        // Delete workout item through service
+        // Gọi service để xóa bài tập
         var response = await _workoutItemService.DeleteWorkoutItemAsync(id, userId.Value);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Reorders workout items for a specific day
+    /// API sắp xếp lại thứ tự các bài tập trong một ngày
     /// </summary>
     [HttpPut("reorder")]
     public async Task<IActionResult> ReorderWorkoutItems([FromBody] ReorderWorkoutItemsRequest request)
     {
-        // Validate model state
+        // Kiểm tra dữ liệu đầu vào
         if (!ModelState.IsValid)
         {
             return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
         }
 
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
-        // Reorder workout items through management service
+        // Gọi service để sắp xếp lại thứ tự bài tập
         var response = await _managementService.ReorderWorkoutItemsAsync(userId.Value, request.DayOfWeek, request.ItemSortOrders);
+        
+        // Trả về kết quả: 200 OK nếu thành công, 400 BadRequest nếu thất bại
         return response.Success ? Ok(response) : BadRequest(response);
     }
 
     /// <summary>
-    /// Duplicates a workout item to another day
+    /// API sao chép bài tập sang một ngày khác
     /// </summary>
+    /// <param name="id">ID của bài tập cần sao chép</param>
+    /// <param name="request">Thông tin ngày cần sao chép đến</param>
     [HttpPost("{id:int}/duplicate")]
     public async Task<IActionResult> DuplicateWorkoutItem(int id, [FromBody] DuplicateWorkoutItemRequest request)
     {
-        // Validate model state
+        // Kiểm tra dữ liệu đầu vào
         if (!ModelState.IsValid)
         {
             return BadRequest(ApiResponse.ErrorResult("Dữ liệu không hợp lệ"));
         }
 
-        // Get authenticated user ID
+        // Lấy userId từ token xác thực
         var userId = GetCurrentUserId();
         if (userId == null)
-            return Unauthorized(ApiResponse.ErrorResult("User not authenticated"));
+            return Unauthorized(ApiResponse.ErrorResult("Người dùng chưa đăng nhập"));
 
-        // Duplicate workout item through management service
-        var response = await _managementService.DuplicateWorkoutItemAsync(id, userId.Value, request.TargetDay);
-
+        // Gọi service để sao chép bài tập
+        var response = await _managementService.DuplicateWorkoutItemAsync(id, userId.Value, request.TargetDayOfWeek);
+        
+        // Trả về kết quả: 201 Created nếu thành công, 400 BadRequest nếu thất bại
         return response.Success
             ? CreatedAtAction(nameof(GetWorkoutItem), new { id = response.Data!.Id }, response)
             : BadRequest(response);
     }
 
     /// <summary>
-    /// Helper method to get current authenticated user ID from JWT claims
+    /// Lấy ID của người dùng hiện tại từ token xác thực
     /// </summary>
+    /// <returns>ID của người dùng hoặc null nếu không xác định được</returns>
     private int? GetCurrentUserId()
     {
+        // Lấy thông tin người dùng từ claim NameIdentifier
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }

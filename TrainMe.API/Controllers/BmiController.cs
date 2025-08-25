@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using TrainMe.Core.DTOs;
 using TrainMe.Core.Interfaces.Services;
 
+// Controller xử lý các API tính toán chỉ số BMI (Body Mass Index)
+
 namespace TrainMe.API.Controllers;
 
 /// <summary>
@@ -15,36 +17,35 @@ public class BmiController : ControllerBase
     private readonly IBmiService _bmiService;
 
     /// <summary>
-    /// Hàm khởi tạo controller, inject IBmiService
+    /// Khởi tạo controller với service tính toán BMI
     /// </summary>
-    /// <param name="bmiService">Service tính toán BMI</param>
+    /// <param name="bmiService">Dịch vụ xử lý tính toán BMI</param>
     public BmiController(IBmiService bmiService)
     {
-        // Kiểm tra null và gán giá trị cho _bmiService
         _bmiService = bmiService ?? throw new ArgumentNullException(nameof(bmiService));
     }
 
     /// <summary>
-    /// API tính toán chỉ số BMI và đánh giá sức khỏe
+    /// Tính toán chỉ số BMI và đánh giá tình trạng sức khỏe
     /// </summary>
-    /// <param name="request">Yêu cầu tính BMI với chiều cao (m) và cân nặng (kg)</param>
-    /// <returns>Kết quả tính BMI kèm phân loại và lời khuyên sức khỏe</returns>
+    /// <param name="request">Yêu cầu tính BMI chứa chiều cao (m) và cân nặng (kg)</param>
+    /// <returns>Kết quả tính toán BMI kèm phân loại và lời khuyên sức khỏe</returns>
     [HttpPost("calculate")]
     [ProducesResponseType(typeof(ApiResponse<BmiCalculationResponse>), 200)]
     [ProducesResponseType(typeof(ApiResponse<BmiCalculationResponse>), 400)]
     [ProducesResponseType(500)]
     public IActionResult CalculateBmi([FromBody] BmiCalculationRequest request)
     {
-        // Kiểm tra dữ liệu đầu vào
+        // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!ModelState.IsValid)
         {
-            // Lấy danh sách lỗi từ ModelState
+            // Thu thập tất cả các thông báo lỗi từ ModelState
             var errors = ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            // Trả về lỗi dữ liệu không hợp lệ
+            // Trả về lỗi 400 nếu dữ liệu không hợp lệ
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
                 "Dữ liệu không hợp lệ", errors));
         }
@@ -61,9 +62,9 @@ public class BmiController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all BMI categories with their ranges and descriptions
+    /// Lấy danh sách tất cả các mức phân loại BMI và khoảng giá trị tương ứng
     /// </summary>
-    /// <returns>List of BMI categories</returns>
+    /// <returns>Danh sách các mức phân loại BMI</returns>
     [HttpGet("categories")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<BmiCategoryInfo>>), 200)]
     [ProducesResponseType(500)]
@@ -78,16 +79,17 @@ public class BmiController : ControllerBase
     }
 
     /// <summary>
-    /// Gets BMI category for a specific BMI value
+    /// Lấy thông tin phân loại BMI dựa trên giá trị BMI
     /// </summary>
-    /// <param name="bmiValue">BMI value to categorize</param>
-    /// <returns>BMI category information</returns>
+    /// <param name="bmiValue">Giá trị BMI cần phân loại</param>
+    /// <returns>Thông tin phân loại BMI</returns>
     [HttpGet("category/{bmiValue:double}")]
     [ProducesResponseType(typeof(ApiResponse<BmiCategoryInfo>), 200)]
     [ProducesResponseType(typeof(ApiResponse<BmiCategoryInfo>), 400)]
     [ProducesResponseType(500)]
     public IActionResult GetBmiCategory(double bmiValue)
     {
+        // Kiểm tra giá trị BMI hợp lệ (phải lớn hơn 0)
         if (bmiValue <= 0)
         {
             return BadRequest(ApiResponse<BmiCategoryInfo>.ErrorResult(
@@ -103,11 +105,11 @@ public class BmiController : ControllerBase
     }
 
     /// <summary>
-    /// Quick BMI calculation via query parameters
+    /// Tính toán nhanh BMI thông qua tham số truy vấn
     /// </summary>
-    /// <param name="height">Height in meters</param>
-    /// <param name="weight">Weight in kilograms</param>
-    /// <returns>BMI calculation result</returns>
+    /// <param name="height">Chiều cao (đơn vị: mét)</param>
+    /// <param name="weight">Cân nặng (đơn vị: kg)</param>
+    /// <returns>Kết quả tính toán BMI</returns>
     [HttpGet("quick")]
     [ProducesResponseType(typeof(ApiResponse<BmiCalculationResponse>), 200)]
     [ProducesResponseType(typeof(ApiResponse<BmiCalculationResponse>), 400)]
@@ -116,26 +118,30 @@ public class BmiController : ControllerBase
         [FromQuery] double height,
         [FromQuery] double weight)
     {
+        // Tạo đối tượng yêu cầu tính toán BMI
         var request = new BmiCalculationRequest(height, weight);
 
-        // Manual validation for query parameters
+        // Kiểm tra ràng buộc về chiều cao
         if (height < 0.5 || height > 3.0)
         {
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
                 "Chiều cao phải từ 0.5m đến 3.0m"));
         }
 
+        // Kiểm tra ràng buộc về cân nặng
         if (weight < 10 || weight > 500)
         {
             return BadRequest(ApiResponse<BmiCalculationResponse>.ErrorResult(
                 "Cân nặng phải từ 10kg đến 500kg"));
         }
 
+        // Gọi service để tính toán BMI
         var result = _bmiService.CalculateBmi(request);
 
+        // Trả về kết quả tương ứng
         if (result.Success)
-            return Ok(result);
+            return Ok(result);  // 200 OK nếu thành công
 
-        return BadRequest(result);
+        return BadRequest(result);  // 400 BadRequest nếu có lỗi
     }
 }
